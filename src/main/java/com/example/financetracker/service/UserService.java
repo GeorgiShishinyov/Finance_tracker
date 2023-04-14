@@ -53,7 +53,9 @@ public class UserService extends AbstractService{
       if(!encoder.matches(dto.getPassword(), u.get().getPassword())){
          throw new UnauthorizedException("Incorrect credentials.");
       }
-      return mapper.map(u, UserFullInfoDTO.class);
+      u.get().setLastLogin(LocalDateTime.now());
+      userRepository.save(u.get());
+      return mapper.map(u.get(), UserFullInfoDTO.class);
    }
 
 

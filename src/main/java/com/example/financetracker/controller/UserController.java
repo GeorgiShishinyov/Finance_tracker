@@ -29,4 +29,8 @@ public class UserController extends AbstractController {
         return respDto;
     }
 
+    @PostMapping("/users/logout")
+    public void logout(HttpSession s) {
+        s.invalidate();
+    }
 }
