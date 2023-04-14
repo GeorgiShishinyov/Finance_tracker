@@ -1,14 +1,17 @@
 package com.example.financetracker.service;
 
+import com.example.financetracker.model.DTOs.LoginDTO;
 import com.example.financetracker.model.DTOs.RegisterDTO;
 import com.example.financetracker.model.DTOs.UserFullInfoDTO;
 import com.example.financetracker.model.entities.User;
 import com.example.financetracker.model.exceptions.BadRequestException;
+import com.example.financetracker.model.exceptions.UnauthorizedException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.Optional;
 
 @Service
 public class UserService extends AbstractService{
@@ -41,6 +44,18 @@ public class UserService extends AbstractService{
       }).start();
       return mapper.map(u, UserFullInfoDTO.class);
    }
+
+   public UserFullInfoDTO login(LoginDTO dto) {
+      Optional<User> u = userRepository.findByEmail(dto.getEmail());
+      if(!u.isPresent()){
+         throw new UnauthorizedException("Incorrect credentials.");
+      }
+      if(!encoder.matches(dto.getPassword(), u.get().getPassword())){
+         throw new UnauthorizedException("Incorrect credentials.");
+      }
+      return mapper.map(u, UserFullInfoDTO.class);
+   }
+
 
    private boolean isStrongPassword(String password) {
       String pattern = "^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[@#$%^&+=!])(?=\\S+$).{8,}$";

@@ -1,8 +1,10 @@
 package com.example.financetracker.controller;
 
+import com.example.financetracker.model.DTOs.LoginDTO;
 import com.example.financetracker.model.DTOs.RegisterDTO;
 import com.example.financetracker.model.DTOs.UserFullInfoDTO;
 import com.example.financetracker.service.UserService;
+import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -19,5 +21,12 @@ public class UserController extends AbstractController {
         return userService.register(dto);
     }
 
+    @PostMapping("/users/login")
+    public UserFullInfoDTO login(@RequestBody LoginDTO dto, HttpSession s){
+        UserFullInfoDTO respDto = userService.login(dto);
+        s.setAttribute("LOGGED", true);
+        s.setAttribute("LOGGED_ID", respDto.getId());
+        return respDto;
+    }
 
 }
