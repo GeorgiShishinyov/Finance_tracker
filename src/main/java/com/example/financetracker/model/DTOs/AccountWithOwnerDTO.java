@@ -9,5 +9,5 @@ import lombok.Setter;
 @NoArgsConstructor
 public class AccountWithOwnerDTO extends AccountWithoutOwnerDTO{
 
-    private UserWithoutPassDTO owner;
+    private UserSimpleDTO owner;
 }

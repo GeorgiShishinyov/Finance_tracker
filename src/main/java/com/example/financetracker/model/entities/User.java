@@ -30,4 +30,6 @@ public class User {
 
     @Column(name = "last_login")
     private LocalDateTime lastLogin;
+
+
 }
