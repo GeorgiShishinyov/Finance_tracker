@@ -1,9 +1,6 @@
 package com.example.financetracker.controller;
 
-import com.example.financetracker.model.DTOs.LoginDTO;
-import com.example.financetracker.model.DTOs.RegisterDTO;
-import com.example.financetracker.model.DTOs.UserEditDTO;
-import com.example.financetracker.model.DTOs.UserFullInfoDTO;
+import com.example.financetracker.model.DTOs.*;
 import com.example.financetracker.model.entities.User;
 import com.example.financetracker.model.exceptions.UnauthorizedException;
 import com.example.financetracker.service.UserService;
@@ -42,5 +39,14 @@ public class UserController extends AbstractController {
         }
         UserFullInfoDTO updatedUser = userService.updateUserById(id, editDto);
         return updatedUser;
+    }
+
+    @PutMapping("/users/{id}/password-change")
+    public UserFullInfoDTO changePassword(@RequestBody UserPasswordChangeDTO passwordChangeDTO, @PathVariable Integer id, HttpSession s) {
+        if (s.getAttribute("LOGGED") == null || !(Boolean) s.getAttribute("LOGGED")) {
+            throw new UnauthorizedException("You are not authorized to perform this action.");
+        }
+        UserFullInfoDTO user = userService.changePassword(id, passwordChangeDTO);
+        return user;
     }
 }

@@ -1,9 +1,6 @@
 package com.example.financetracker.service;
 
-import com.example.financetracker.model.DTOs.LoginDTO;
-import com.example.financetracker.model.DTOs.RegisterDTO;
-import com.example.financetracker.model.DTOs.UserEditDTO;
-import com.example.financetracker.model.DTOs.UserFullInfoDTO;
+import com.example.financetracker.model.DTOs.*;
 import com.example.financetracker.model.entities.User;
 import com.example.financetracker.model.exceptions.BadRequestException;
 import com.example.financetracker.model.exceptions.NotFoundException;
@@ -61,16 +58,6 @@ public class UserService extends AbstractService{
       return mapper.map(u.get(), UserFullInfoDTO.class);
    }
 
-   private boolean isStrongPassword(String password) {
-      String pattern = "^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[@#$%^&+=!])(?=\\S+$).{8,}$";
-      return password.matches(pattern);
-   }
-
-   private boolean isValidEmail(String email) {
-      String pattern = "^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$";
-      return email.matches(pattern);
-   }
-
    @Transactional
    public UserFullInfoDTO updateUserById(Integer id, UserEditDTO editDto) {
       Optional<User> optionalUser = userRepository.findById(id);
@@ -84,4 +71,38 @@ public class UserService extends AbstractService{
       userRepository.save(user);
       return mapper.map(user, UserFullInfoDTO.class);
    }
+
+   public UserFullInfoDTO changePassword(Integer id, UserPasswordChangeDTO passwordChangeDTO) {
+      Optional<User> optionalUser = userRepository.findById(id);
+      if (!optionalUser.isPresent()) {
+         throw new NotFoundException("User not found.");
+      }
+      User user = optionalUser.get();
+      if (!encoder.matches(passwordChangeDTO.getPassword(), user.getPassword()))  {
+         throw new BadRequestException("Incorrect password.");
+      }
+      if(!passwordChangeDTO.getNewPassword().equals(passwordChangeDTO.getConfirmPassword())){
+         throw new BadRequestException("The passwords do not match!");
+      }
+      if (!isStrongPassword(passwordChangeDTO.getNewPassword())){
+         throw new BadRequestException("Weak password. The password must be " +
+                 "at least 8 characters long and contain an uppercase letter, " +
+                 "a lowercase letter, a number, and a special character.");
+
+      }
+      user.setPassword(encoder.encode(passwordChangeDTO.getNewPassword()));
+      userRepository.save(user);
+      return mapper.map(user, UserFullInfoDTO.class);
+   }
+
+   private boolean isStrongPassword(String password) {
+      String pattern = "^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[@#$%^&+=!])(?=\\S+$).{8,}$";
+      return password.matches(pattern);
+   }
+
+   private boolean isValidEmail(String email) {
+      String pattern = "^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$";
+      return email.matches(pattern);
+   }
+
 }
