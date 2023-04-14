@@ -37,8 +37,7 @@ public class UserController extends AbstractController {
         if (s.getAttribute("LOGGED") == null || !(Boolean) s.getAttribute("LOGGED")) {
             throw new UnauthorizedException("You are not authorized to perform this action.");
         }
-        UserFullInfoDTO updatedUser = userService.updateUserById(id, editDto);
-        return updatedUser;
+        return userService.updateUserById(id, editDto);
     }
 
     @PutMapping("/users/{id}/password-change")
@@ -46,7 +45,14 @@ public class UserController extends AbstractController {
         if (s.getAttribute("LOGGED") == null || !(Boolean) s.getAttribute("LOGGED")) {
             throw new UnauthorizedException("You are not authorized to perform this action.");
         }
-        UserFullInfoDTO user = userService.changePassword(id, passwordChangeDTO);
-        return user;
+        return userService.changePassword(id, passwordChangeDTO);
+    }
+
+    @DeleteMapping("/users/{id}")
+    public UserFullInfoDTO deleteUserById(@PathVariable Integer id, HttpSession s) {
+        if (s.getAttribute("LOGGED") == null || !(Boolean) s.getAttribute("LOGGED")) {
+            throw new UnauthorizedException("You are not authorized to perform this action.");
+        }
+        return userService.deleteUserById(id);
     }
 }

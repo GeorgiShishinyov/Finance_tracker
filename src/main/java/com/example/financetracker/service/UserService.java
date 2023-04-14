@@ -95,6 +95,15 @@ public class UserService extends AbstractService{
       return mapper.map(user, UserFullInfoDTO.class);
    }
 
+   public UserFullInfoDTO deleteUserById(Integer id) {
+      Optional<User> optionalUser = userRepository.findById(id);
+      if (!optionalUser.isPresent()) {
+         throw new NotFoundException("User not found.");
+      }
+      User user = optionalUser.get();
+      userRepository.deleteById(id);
+      return mapper.map(user, UserFullInfoDTO.class);
+   }
    private boolean isStrongPassword(String password) {
       String pattern = "^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[@#$%^&+=!])(?=\\S+$).{8,}$";
       return password.matches(pattern);
