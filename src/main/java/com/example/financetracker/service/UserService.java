@@ -2,10 +2,13 @@ package com.example.financetracker.service;
 
 import com.example.financetracker.model.DTOs.LoginDTO;
 import com.example.financetracker.model.DTOs.RegisterDTO;
+import com.example.financetracker.model.DTOs.UserEditDTO;
 import com.example.financetracker.model.DTOs.UserFullInfoDTO;
 import com.example.financetracker.model.entities.User;
 import com.example.financetracker.model.exceptions.BadRequestException;
+import com.example.financetracker.model.exceptions.NotFoundException;
 import com.example.financetracker.model.exceptions.UnauthorizedException;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -58,7 +61,6 @@ public class UserService extends AbstractService{
       return mapper.map(u.get(), UserFullInfoDTO.class);
    }
 
-
    private boolean isStrongPassword(String password) {
       String pattern = "^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[@#$%^&+=!])(?=\\S+$).{8,}$";
       return password.matches(pattern);
@@ -67,5 +69,19 @@ public class UserService extends AbstractService{
    private boolean isValidEmail(String email) {
       String pattern = "^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$";
       return email.matches(pattern);
+   }
+
+   @Transactional
+   public UserFullInfoDTO updateUserById(Integer id, UserEditDTO editDto) {
+      Optional<User> optionalUser = userRepository.findById(id);
+      if (!optionalUser.isPresent()) {
+         throw new NotFoundException("User not found.");
+      }
+      User user = optionalUser.get();
+      user.setFirstName(editDto.getFirstName());
+      user.setLastName(editDto.getLastName());
+      user.setDateOfBirth(editDto.getDateOfBirth());
+      userRepository.save(user);
+      return mapper.map(user, UserFullInfoDTO.class);
    }
 }
