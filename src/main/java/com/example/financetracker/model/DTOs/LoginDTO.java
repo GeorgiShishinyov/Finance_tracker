@@ -4,10 +4,12 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-@Getter
 @Setter
+@Getter
 @NoArgsConstructor
-public class AccountWithOwnerDTO extends AccountWithoutOwnerDTO{
+public class LoginDTO {
 
-    private UserFullInfoDTO owner;
+    private String email;
+    private String password;
+
 }

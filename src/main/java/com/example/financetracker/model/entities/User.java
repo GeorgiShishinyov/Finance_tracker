@@ -5,6 +5,8 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
+import java.util.HashSet;
+import java.util.Set;
 
 @Getter
 @Setter
@@ -31,5 +33,7 @@ public class User {
     @Column(name = "last_login")
     private LocalDateTime lastLogin;
 
-
+    @OneToMany
+    @JoinColumn(name = "owner_id")
+    private Set<Account> accounts = new HashSet<>();
 }
