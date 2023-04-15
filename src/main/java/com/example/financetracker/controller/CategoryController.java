@@ -4,14 +4,12 @@ import com.example.financetracker.model.entities.Category;
 import com.example.financetracker.model.exceptions.UnauthorizedException;
 import com.example.financetracker.service.CategoryService;
 import jakarta.servlet.http.HttpSession;
-import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+import java.util.List;
 
 @RestController
-public class CategoryController {
+public class CategoryController extends AbstractController{
 
     @Autowired
     private CategoryService categoryService;
@@ -23,4 +21,17 @@ public class CategoryController {
         }
         return categoryService.getCategoryById(id);
     }
+
+    @GetMapping("/categories/filter")
+    public List<Category> filterCategory(@RequestParam ("name") String name, HttpSession s){
+        getLoggedUserId(s);
+        return categoryService.filterCategory(name);
+    }
+
+    @GetMapping("/categories")
+    public List<Category> getAllCategories(HttpSession s){
+        getLoggedUserId(s);
+        return categoryService.getAllCategories();
+    }
 }
+

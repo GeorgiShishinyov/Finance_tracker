@@ -1,6 +1,5 @@
 package com.example.financetracker.service;
 
-import com.example.financetracker.controller.UserController;
 import com.example.financetracker.model.DTOs.*;
 import com.example.financetracker.model.entities.User;
 import com.example.financetracker.model.exceptions.BadRequestException;
