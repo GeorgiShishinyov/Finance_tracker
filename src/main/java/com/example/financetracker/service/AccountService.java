@@ -1,9 +1,6 @@
 package com.example.financetracker.service;
 
-import com.example.financetracker.model.DTOs.AccountWithOwnerDTO;
-import com.example.financetracker.model.DTOs.AccountWithoutOwnerDTO;
-import com.example.financetracker.model.DTOs.CreateAccountDTO;
-import com.example.financetracker.model.DTOs.EditAccountDTO;
+import com.example.financetracker.model.DTOs.*;
 import com.example.financetracker.model.entities.Account;
 import com.example.financetracker.model.entities.User;
 import com.example.financetracker.model.exceptions.BadRequestException;
@@ -12,7 +9,9 @@ import com.example.financetracker.model.repositories.AccountRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 public class AccountService extends AbstractService{
 
@@ -57,5 +56,22 @@ public class AccountService extends AbstractService{
         if(account.getName() == null){
             throw new BadRequestException("You have to write any account name.");
         }
+    }
+
+    public List<AccountWithoutOwnerDTO> getAllAccounts(int id) {
+        return accountRepository.findAllByOwnerId(id)
+                .stream()
+                .map(account -> mapper.map(account, AccountWithoutOwnerDTO.class))
+                .collect(Collectors.toList());
+    }
+
+    public AccountWithoutOwnerDTO deleteAccountById(int id) {
+        Optional<Account> optionalAccount = accountRepository.findById(id);
+        if (!optionalAccount.isPresent()) {
+            throw new NotFoundException("Account not found.");
+        }
+        Account account = optionalAccount.get();
+        accountRepository.deleteById(id);
+        return mapper.map(account, AccountWithoutOwnerDTO.class);
     }
 }
