@@ -143,7 +143,6 @@ public class UserService extends AbstractService {
         message.setTo(email);
         message.setSubject("Email Validation");
         message.setText("Please click the following link to validate your email: http://localhost:7777/email-validation?code=" + code);
-
         javaMailSender.send(message);
     }
 

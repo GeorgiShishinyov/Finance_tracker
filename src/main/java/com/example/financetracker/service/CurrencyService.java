@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
-public class CurrencyService extends AccountService{
+public class CurrencyService extends AbstractService{
 
     @Autowired
     private CurrencyRepository currencyRepository;

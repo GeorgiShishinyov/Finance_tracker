@@ -8,21 +8,16 @@ import org.springframework.stereotype.Service;
 
 import java.io.File;
 import java.util.List;
-import java.util.Optional;
 
 @Service
-public class CategoryService extends AbstractService{
+public class CategoryService extends AbstractService {
 
     @Autowired
     private CategoryRepository categoryRepository;
 
     public Category getCategoryById(int categoryId) {
-        Optional<Category> category = categoryRepository.findById(categoryId);
-        if (category.isPresent()) {
-            return category.get();
-        } else {
-            throw new NotFoundException("Category not found!");
-        }
+        return categoryRepository.findById(categoryId)
+                .orElseThrow(() -> new NotFoundException("Category not found!"));
     }
 
     public List<Category> getAllCategories() {
@@ -38,6 +33,7 @@ public class CategoryService extends AbstractService{
     }
 
     public File download(String fileName) {
+        fileName = "C:\\Users\\User\\Desktop\\Finance_tracker_project\\finance_tracker\\uploads\\" + fileName;
         File f = new File(fileName);
         System.out.println(fileName);
         if(f.exists()){
