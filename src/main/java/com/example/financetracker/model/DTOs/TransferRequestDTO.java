@@ -10,15 +10,13 @@ import java.time.LocalDateTime;
 
 @Getter
 @Setter
-@AllArgsConstructor
 @NoArgsConstructor
-public class TransferDTO {
+@AllArgsConstructor
+public class TransferRequestDTO {
 
-    private int id;
-    private LocalDateTime date;
+    private int accountSenderId;
+    private int accountReceiverId;
     private String description;
     private BigDecimal amount;
-    private AccountWithoutOwnerDTO accountSender;
-    private AccountWithoutOwnerDTO accountReceiver;
 
 }

@@ -15,11 +15,13 @@ public class Transfer {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
-    @Column(name = "account_sender_id")
-    private int accountSenderId;
+    @ManyToOne
+    @JoinColumn(name = "account_sender_id")
+    private Account accountSender;
 
-    @Column(name = "account_receiver_id")
-    private int accountReceiverId;
+    @ManyToOne
+    @JoinColumn(name = "account_receiver_id")
+    private Account accountReceiver;
 
     @Column(name = "description")
     private String description;

@@ -18,4 +18,8 @@ public abstract class AbstractService {
     protected User getUserById(int id){
         return userRepository.findById(id).orElseThrow(() -> new NotFoundException("User not found"));
     }
+
+    //TODO getTransactionById
+    //TODO getTransferById
+
 }
