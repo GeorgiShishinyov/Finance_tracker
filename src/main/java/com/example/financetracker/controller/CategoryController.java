@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-public class CategoryController {
+public class CategoryController extends AbstractController{
 
     @Autowired
     private CategoryService categoryService;
