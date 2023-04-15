@@ -9,18 +9,14 @@ import org.springframework.stereotype.Service;
 import java.util.Optional;
 
 @Service
-public class CategoryService {
+public class CategoryService extends AbstractService {
 
     @Autowired
     private CategoryRepository categoryRepository;
 
     public Category getCategoryById(int categoryId) {
-        Optional<Category> category = categoryRepository.findById(categoryId);
-        if (category.isPresent()) {
-            return category.get();
-        } else {
-            throw new NotFoundException("Category not found!");
-        }
+        return categoryRepository.findById(categoryId)
+                .orElseThrow(() -> new NotFoundException("Category not found!"));
     }
 
 }
