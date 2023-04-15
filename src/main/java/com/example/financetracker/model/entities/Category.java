@@ -12,6 +12,12 @@ import lombok.Setter;
 @AllArgsConstructor
 @Entity(name = "categories")
 public class Category {
+
+    public enum CategoryType {
+        INCOME,
+        EXPENSE
+    }
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
@@ -23,5 +29,6 @@ public class Category {
     private String name;
 
     @Column(name = "type")
-    private String type;
+    @Enumerated(EnumType.STRING)
+    private CategoryType type;
 }

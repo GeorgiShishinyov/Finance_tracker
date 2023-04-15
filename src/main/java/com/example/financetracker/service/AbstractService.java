@@ -1,10 +1,12 @@
 package com.example.financetracker.service;
 
 import com.example.financetracker.model.entities.Account;
+import com.example.financetracker.model.entities.Transaction;
 import com.example.financetracker.model.entities.Transfer;
 import com.example.financetracker.model.entities.User;
 import com.example.financetracker.model.exceptions.NotFoundException;
 import com.example.financetracker.model.repositories.AccountRepository;
+import com.example.financetracker.model.repositories.TransactionRepository;
 import com.example.financetracker.model.repositories.TransferRepository;
 import com.example.financetracker.model.repositories.UserRepository;
 import org.modelmapper.ModelMapper;
@@ -22,6 +24,9 @@ public abstract class AbstractService {
 
     @Autowired
     protected AccountRepository accountRepository;
+
+    @Autowired
+    protected TransactionRepository transactionRepository;
     @Autowired
     protected ModelMapper mapper;
 
@@ -37,6 +42,9 @@ public abstract class AbstractService {
         return accountRepository.findById(id).orElseThrow(() -> new NotFoundException("Account not found"));
     }
 
-    //TODO getTransactionById
+    protected Transaction getTransactionById(int id){
+        return transactionRepository.findById(id).orElseThrow(() -> new NotFoundException("Transaction not found"));
+    }
+
 
 }
