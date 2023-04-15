@@ -15,6 +15,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -26,18 +28,12 @@ public class TransferService extends AbstractService {
     @Autowired
     private UserRepository userRepository;
 
-    @Autowired
-    private AccountRepository accountRepository;
-
     public TransferDTO getTransferById(int id, int userId ) {
-        Optional<Transfer> optionalTransfer = transferRepository.findById(id);
-        if (!optionalTransfer.isPresent()) {
-            throw new NotFoundException("Transfer not found.");
-        }
-        if (optionalTransfer.get().getAccountSender().getOwner().getId() != userId){
+        Transfer transfer = getTransferById(id);
+        if (transfer.getAccountSender().getOwner().getId() != userId){
             throw new UnauthorizedException("You don't have access to this transfer!");
         }
-        return mapper.map(optionalTransfer.get(), TransferDTO.class);
+        return mapper.map(transfer, TransferDTO.class);
     }
 
     @Transactional
@@ -46,14 +42,8 @@ public class TransferService extends AbstractService {
         if(user == null){
             throw new UnauthorizedException("Permission denied. You do not have authorization to make this transfer.");
         }
-        Account accountSender = accountRepository.findAccountById(transferRequestDTO.getAccountSenderId());
-        if (accountSender == null) {
-            throw new NotFoundException("Sender account not found.");
-        }
-        Account accountReceiver = accountRepository.findAccountById(transferRequestDTO.getAccountReceiverId());
-        if (accountReceiver == null) {
-            throw new NotFoundException("Receiver account not found.");
-        }
+        Account accountSender = getAccountById(transferRequestDTO.getAccountSenderId());
+        Account accountReceiver = getAccountById(transferRequestDTO.getAccountReceiverId());
         if (!accountReceiver.getOwner().equals(accountSender.getOwner())){
             throw new UnauthorizedException("Permission denied. You do not have authorization to make this transfer.");
         }
@@ -73,5 +63,17 @@ public class TransferService extends AbstractService {
         accountReceiver.setBalance(accountReceiver.getBalance().add(transferRequestDTO.getAmount()));
         accountRepository.save(accountReceiver);
         return mapper.map(transfer,TransferDTO.class);
+    }
+
+    public List<TransferDTO> getAllTransfersForUser(int loggedUserId) {
+        List<Transfer> transfers = transferRepository.findByAccountSender_Owner_Id(loggedUserId);
+        if (transfers.isEmpty()){
+            throw new NotFoundException("No transfers found for the user.");
+        }
+        List<TransferDTO> transferDTOs = new ArrayList<>();
+        for (Transfer transfer : transfers) {
+            transferDTOs.add(mapper.map(transfer, TransferDTO.class));
+        }
+        return transferDTOs;
     }
 }

@@ -10,7 +10,7 @@ import java.util.Optional;
 
 public interface TransferRepository extends JpaRepository<Transfer, Integer> {
 
-    List<Transfer> findByAccountSender_Id(int senderId);
+    List<Transfer> findByAccountSender_Owner_Id(int senderId);
 
-    List<Transfer> findByAccountReceiver_Id(int receiverId);
+    List<Transfer> findByAccountReceiver_Owner_Id(int receiverId);
 }

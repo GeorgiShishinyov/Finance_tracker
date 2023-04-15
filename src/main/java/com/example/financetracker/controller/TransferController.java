@@ -10,6 +10,8 @@ import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 public class TransferController extends AbstractController{
 
@@ -24,4 +26,10 @@ public class TransferController extends AbstractController{
     public TransferDTO createTransfer(@RequestBody TransferRequestDTO transferRequestDTO, HttpSession s) {
         return transferService.createTransfer(getLoggedUserId(s), transferRequestDTO);
     }
+
+    @GetMapping("/transfers")
+    public List<TransferDTO> getAllTransfersForUser(HttpSession s) {
+        return transferService.getAllTransfersForUser(getLoggedUserId(s));
+    }
+
 }
