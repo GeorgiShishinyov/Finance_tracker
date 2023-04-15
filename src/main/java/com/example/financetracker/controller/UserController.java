@@ -5,7 +5,10 @@ import com.example.financetracker.model.entities.User;
 import com.example.financetracker.model.exceptions.UnauthorizedException;
 import com.example.financetracker.service.UserService;
 import jakarta.servlet.http.HttpSession;
+import lombok.SneakyThrows;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.mail.javamail.JavaMailSenderImpl;
+import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -54,5 +57,11 @@ public class UserController extends AbstractController {
             throw new UnauthorizedException("You are not authorized to perform this action.");
         }
         return userService.deleteUserById(id);
+    }
+
+
+    @GetMapping("/email-validation")
+    public UserFullInfoDTO validateEmail(@RequestParam("code") String code) {
+        return userService.validateCode(code);
     }
 }
