@@ -1,7 +1,6 @@
 package com.example.financetracker.controller;
 
 import com.example.financetracker.model.DTOs.*;
-import com.example.financetracker.model.entities.Account;
 import com.example.financetracker.model.exceptions.UnauthorizedException;
 import com.example.financetracker.service.AccountService;
 import jakarta.servlet.http.HttpSession;
@@ -10,6 +9,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+@RestController
 public class AccountController extends AbstractController{
 
     @Autowired
@@ -29,22 +29,23 @@ public class AccountController extends AbstractController{
 
     @GetMapping("/accounts/{id}")
     public AccountWithOwnerDTO getById(@PathVariable int id, HttpSession s){
-        getLoggedUserId(s);
-        return accountService.getById(id);
+        int userId = getLoggedUserId(s);
+        return accountService.getById(id, userId);
     }
 
-    @GetMapping("/users/{id}/accounts")
-    public List<AccountWithoutOwnerDTO> getAllAccounts(@PathVariable int id, HttpSession s){
-        getLoggedUserId(s);
-        return accountService.getAllAccounts(id);
+    @GetMapping("/accounts")
+    public List<AccountWithoutOwnerDTO> getAllAccounts(HttpSession s){
+        int userId = getLoggedUserId(s);
+        return accountService.getAllAccounts(userId);
     }
 
     @DeleteMapping("/accounts/{id}")
     public AccountWithoutOwnerDTO deleteAccountById(@PathVariable int id, HttpSession s) {
+        int userId = getLoggedUserId(s);
         if (s.getAttribute("LOGGED") == null || !(Boolean) s.getAttribute("LOGGED")) {
             throw new UnauthorizedException("You are not authorized to perform this action.");
         }
-        return accountService.deleteAccountById(id);
+        return accountService.deleteAccountById(id, userId);
     }
 
 

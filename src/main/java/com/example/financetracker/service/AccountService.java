@@ -2,24 +2,32 @@ package com.example.financetracker.service;
 
 import com.example.financetracker.model.DTOs.*;
 import com.example.financetracker.model.entities.Account;
+import com.example.financetracker.model.entities.Currency;
 import com.example.financetracker.model.entities.User;
 import com.example.financetracker.model.exceptions.BadRequestException;
 import com.example.financetracker.model.exceptions.NotFoundException;
 import com.example.financetracker.model.repositories.AccountRepository;
+import com.example.financetracker.model.repositories.CurrencyRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+@Service
 public class AccountService extends AbstractService{
 
+    @Autowired
+    private CurrencyRepository currencyRepository;
     @Autowired
     private AccountRepository accountRepository;
 
     public AccountWithOwnerDTO create(CreateAccountDTO dto, int userId) {
         Account account = mapper.map(dto, Account.class);
+        Currency currency = mapper.map(dto.getCurrency(), Currency.class);
+        account.setCurrency(currency);
         validateAccountData(account);
         User u = getUserById(userId);
         account.setOwner(u);
@@ -28,20 +36,30 @@ public class AccountService extends AbstractService{
     }
 
     public AccountWithoutOwnerDTO edit(int id, EditAccountDTO dto, int userId) {
-        Account account = mapper.map(dto, Account.class);
-        account.setId(id);
-        validateAccountData(account);
+        Account account = accountRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("Account not found"));
         if(account.getOwner().getId() != userId){
             throw new BadRequestException("You can not change the owner of account!");
         }
+        account.setName(dto.getName());
+        account.setBalance(dto.getBalance());
+        // set the currency using the currency_id in the DTO
+        Currency currency = currencyRepository.findById(dto.getCurrencyId())
+                .orElseThrow(() -> new NotFoundException("Currency not found"));
+        account.setCurrency(currency);
+        validateAccountData(account);
         accountRepository.save(account);
         return mapper.map(account, AccountWithoutOwnerDTO.class);
     }
 
-    public AccountWithOwnerDTO getById(int id) {
+    public AccountWithOwnerDTO getById(int id, int userId) {
         Optional<Account> account = accountRepository.findById(id);
         if(account.isPresent()){
-            return mapper.map(account.get(), AccountWithOwnerDTO.class);
+            AccountWithOwnerDTO account1 = mapper.map(account.get(), AccountWithOwnerDTO.class);
+            if(account1.getOwner().getId() == userId){
+                return account1;
+            }
+            throw new BadRequestException("You can't view foreign account");
         }
         throw new NotFoundException("Account not found!");
     }
@@ -65,13 +83,15 @@ public class AccountService extends AbstractService{
                 .collect(Collectors.toList());
     }
 
-    public AccountWithoutOwnerDTO deleteAccountById(int id) {
+    public AccountWithoutOwnerDTO deleteAccountById(int id, int userId) {
         Optional<Account> optionalAccount = accountRepository.findById(id);
         if (!optionalAccount.isPresent()) {
             throw new NotFoundException("Account not found.");
         }
         Account account = optionalAccount.get();
-        accountRepository.deleteById(id);
+        if(account.getOwner().getId() == userId){
+            accountRepository.deleteById(id);
+        }
         return mapper.map(account, AccountWithoutOwnerDTO.class);
     }
 }

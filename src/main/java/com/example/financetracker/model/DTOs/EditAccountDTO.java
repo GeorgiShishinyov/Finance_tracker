@@ -4,10 +4,14 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.math.BigDecimal;
+
 @Setter
 @Getter
 @NoArgsConstructor
-public class EditAccountDTO extends CreateAccountDTO {
-    
-    private int id;
+public class EditAccountDTO{
+
+    private String name;
+    private BigDecimal balance;
+    private int currencyId;
 }
