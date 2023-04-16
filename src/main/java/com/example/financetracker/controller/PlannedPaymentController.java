@@ -2,6 +2,8 @@ package com.example.financetracker.controller;
 
 import com.example.financetracker.model.DTOs.PlannedPaymentDTO;
 import com.example.financetracker.model.DTOs.PlannedPaymentRequestDTO;
+import com.example.financetracker.model.DTOs.TransactionDTO;
+import com.example.financetracker.model.DTOs.TransactionDTOWithoutPlannedPayments;
 import com.example.financetracker.model.entities.PlannedPayment;
 import com.example.financetracker.model.exceptions.UnauthorizedException;
 import com.example.financetracker.service.PlannedPaymentService;
@@ -37,4 +39,8 @@ public class PlannedPaymentController extends AbstractController{
         return plannedPaymentService.getAllPlannedPaymentsForAccount(id, getLoggedUserId(s));
     }
 
+    @GetMapping("/planned-payments/{id}/transactions")
+    public List<TransactionDTOWithoutPlannedPayments> getAllTransactionsForPlannedPayment(@PathVariable int id, HttpSession s) {
+        return plannedPaymentService.getAllTransactionsForPlannedPayment(id, getLoggedUserId(s));
+    }
 }

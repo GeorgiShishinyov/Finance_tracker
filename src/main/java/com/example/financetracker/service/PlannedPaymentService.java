@@ -1,9 +1,6 @@
 package com.example.financetracker.service;
 
-import com.example.financetracker.model.DTOs.PlannedPaymentDTO;
-import com.example.financetracker.model.DTOs.PlannedPaymentRequestDTO;
-import com.example.financetracker.model.DTOs.TransactionDTO;
-import com.example.financetracker.model.DTOs.TransactionRequestDTO;
+import com.example.financetracker.model.DTOs.*;
 import com.example.financetracker.model.entities.*;
 import com.example.financetracker.model.exceptions.BadRequestException;
 import com.example.financetracker.model.exceptions.NotFoundException;
@@ -80,6 +77,20 @@ public class PlannedPaymentService extends AbstractService {
     }
 
     @Transactional
+    public List<TransactionDTOWithoutPlannedPayments> getAllTransactionsForPlannedPayment(int plannedPaymentId, int loggedUserId) {
+        User user = getUserById(loggedUserId);
+        PlannedPayment plannedPayment = getPlannedPaymentById(plannedPaymentId);
+        checkAccountAccessRights(plannedPayment.getAccount(), user);
+        List<Transaction> transactions = transactionRepository.findAllByPlannedPayment(plannedPayment);
+        if (transactions.isEmpty()) {
+            throw new NotFoundException("Transactions not found");
+        }
+        return transactions.stream()
+                .map(transaction -> mapper.map(transaction, TransactionDTOWithoutPlannedPayments.class))
+                .collect(Collectors.toList());
+    }
+
+    @Transactional
     //@Scheduled(fixedDelay = 2000) // test - every 2 seconds
     @Scheduled(fixedDelay = 24 * 60 * 60 * 1000) // every 24 hours
     public void processPlannedPayments() {
@@ -118,7 +129,7 @@ public class PlannedPaymentService extends AbstractService {
         }
     }
 
-    private void checkSufficientFunds(BigDecimal balance, BigDecimal amount){
+    private void checkSufficientFunds(BigDecimal balance, BigDecimal amount) {
         if (balance.compareTo(amount) <= 0) {
             throw new UnauthorizedException("Insufficient funds in sender account.");
         }
