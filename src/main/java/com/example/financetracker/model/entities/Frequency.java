@@ -9,11 +9,19 @@ import lombok.Setter;
 @Entity(name = "frequencies")
 public class Frequency {
 
+    public enum FrequencyType {
+        WEEKLY,
+        MONTHLY,
+        YEARLY
+    }
+
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
-    //TODO enum
     @Column(name = "frequency")
-    private String frequency;
+    @Enumerated(EnumType.STRING)
+    private Frequency.FrequencyType frequency;
+
 }

@@ -123,7 +123,7 @@ public class PlannedPaymentService extends AbstractService {
 
             Frequency frequency = plannedPayment.getFrequency();
             LocalDateTime nextPaymentDate = null;
-            switch (frequency.getFrequency()) {
+            switch (frequency.getFrequency().toString()) {
                 case "WEEKLY":
                     nextPaymentDate = plannedPayment.getDate().plusWeeks(1);
                     break;

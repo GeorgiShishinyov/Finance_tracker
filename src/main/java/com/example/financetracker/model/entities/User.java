@@ -16,6 +16,7 @@ public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
+
     @Column
     private String email;
 
@@ -33,10 +34,13 @@ public class User {
 
     @Column(name = "last_login")
     private LocalDateTime lastLogin;
+
     @Column(name = "is_verified")
     private boolean isVerified;
+
     @Column(name = "unique_code")
     private String uniqueCode;
+
     @Column(name = "validation_exp_date_time")
     private LocalDateTime expirationDate;
 

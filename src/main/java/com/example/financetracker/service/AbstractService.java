@@ -37,6 +37,9 @@ public abstract class AbstractService {
     protected PlannedPaymentRepository plannedPaymentRepository;
 
     @Autowired
+    protected LoginLocationRepository loginLocationRepository;
+
+    @Autowired
     protected ModelMapper mapper;
 
     protected User getUserById(int id){

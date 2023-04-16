@@ -1,21 +1,30 @@
 package com.example.financetracker.service;
 
+import com.example.financetracker.SessionCollector;
 import com.example.financetracker.model.DTOs.*;
+import com.example.financetracker.model.entities.LoginLocation;
 import com.example.financetracker.model.entities.User;
 import com.example.financetracker.model.exceptions.BadRequestException;
 import com.example.financetracker.model.exceptions.NotFoundException;
 import com.example.financetracker.model.exceptions.UnauthorizedException;
+import jakarta.servlet.ServletContext;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpSession;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import java.net.http.HttpRequest;
 import java.time.LocalDateTime;
+import java.util.Enumeration;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -30,6 +39,9 @@ public class UserService extends AbstractService {
 
     @Autowired
     private JavaMailSender javaMailSender;
+
+    @Autowired
+    private SessionCollector sessionCollector;
 
     public UserFullInfoDTO register(RegisterDTO dto) {
         if (!dto.getPassword().equals(dto.getConfirmPassword())) {
@@ -59,13 +71,24 @@ public class UserService extends AbstractService {
         return mapper.map(u, UserFullInfoDTO.class);
     }
 
-    public UserFullInfoDTO login(LoginDTO dto) {
+    @Transactional
+    public UserFullInfoDTO login(LoginDTO dto, String ip) {
         Optional<User> u = userRepository.findByEmail(dto.getEmail());
         if (!u.isPresent()) {
             throw new UnauthorizedException("Incorrect credentials.");
         }
         if (!encoder.matches(dto.getPassword(), u.get().getPassword())) {
             throw new UnauthorizedException("Incorrect credentials.");
+        }
+        if(!loginLocationRepository.existsByIpAndUser_Id(ip, u.get().getId())){
+            LoginLocation loginLocation = new LoginLocation();
+            loginLocation.setUser(u.get());
+            loginLocation.setIp(ip);
+            loginLocationRepository.save(loginLocation);
+            new Thread(() -> {
+                String ipUniqueCode = UUID.randomUUID().toString();
+                sendEmailIpInvalidation(u.get().getEmail(), u.get().getId(), ipUniqueCode);
+            }).start();
         }
         u.get().setLastLogin(LocalDateTime.now());
         userRepository.save(u.get());
@@ -130,7 +153,7 @@ public class UserService extends AbstractService {
     }
 
     public UserFullInfoDTO validateCode(String code) {
-       User user = userRepository.findByUniqueCodeAndExpirationDateBefore(code, LocalDateTime.now())
+        User user = userRepository.findByUniqueCodeAndExpirationDateBefore(code, LocalDateTime.now())
                 .orElseThrow(() -> new BadRequestException("Validation code not found or has expired."));
 
         user.setVerified(true);
@@ -138,13 +161,20 @@ public class UserService extends AbstractService {
         userRepository.save(user);
         return mapper.map(user, UserFullInfoDTO.class);
     }
+
     @SneakyThrows
     private void sendEmailValidation(String email, String code) {
         SimpleMailMessage message = new SimpleMailMessage();
         message.setFrom("finance.tracker.app2023@gmail.com");
         message.setTo(email);
         message.setSubject("Email Validation");
-        message.setText("Please click the following link to validate your email: http://localhost:7777/email-validation?code=" + code);
+        message.setText("""
+                Hi,
+                
+                Please click the following link to validate your email: http://localhost:7777/email-validation?code=""" + code + """
+                
+                Best regards,
+                The Finance tracker team""");
         javaMailSender.send(message);
     }
 
@@ -155,4 +185,36 @@ public class UserService extends AbstractService {
         userRepository.deleteAll(expiredUsers);
     }
 
+    private void sendEmailIpInvalidation(String email, int id, String code) {
+        SimpleMailMessage message = new SimpleMailMessage();
+        message.setFrom("finance.tracker.app2023@gmail.com");
+        message.setTo(email);
+        message.setSubject("Security alert for you linked Finance tracker account");
+        message.setText("""
+                Hi,
+                
+                Your Finance tracker account was just signed in to from a new device. You're getting this email to make sure it was you.
+                        
+                If you did not perform this action, please click the following link to sign out of all devices:
+                http://localhost:7777/users/""" + id + """
+                /invalidate?code=""" + code + """
+                                        
+                We recommend that you change your password.
+                
+                Best regards,
+                The Finance tracker team""");
+
+        javaMailSender.send(message);
+    }
+
+    @Transactional
+    public ResponseEntity<String> invalidateSessions(Integer userId) {
+        for(HttpSession s : sessionCollector.getAllSessions()){
+            if(s.getAttribute("LOGGED_ID") != null && s.getAttribute("LOGGED_ID") == userId){
+                s.invalidate();
+            }
+        }
+        loginLocationRepository.deleteAllByUserId(userId);
+        return ResponseEntity.ok("Sessions invalidated.");
+    }
 }
