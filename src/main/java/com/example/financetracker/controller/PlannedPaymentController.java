@@ -43,4 +43,9 @@ public class PlannedPaymentController extends AbstractController{
     public List<TransactionDTOWithoutPlannedPayments> getAllTransactionsForPlannedPayment(@PathVariable int id, HttpSession s) {
         return plannedPaymentService.getAllTransactionsForPlannedPayment(id, getLoggedUserId(s));
     }
+
+    @PutMapping("/planned-payments/{id}")
+    public PlannedPaymentDTO editPlannedPaymentById(@PathVariable int id, @RequestBody PlannedPaymentRequestDTO plannedPaymentRequestDTO, HttpSession s) {
+        return plannedPaymentService.editPlannedPaymentById(id, plannedPaymentRequestDTO, getLoggedUserId(s));
+    }
 }

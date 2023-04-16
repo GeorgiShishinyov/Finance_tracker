@@ -91,6 +91,22 @@ public class PlannedPaymentService extends AbstractService {
     }
 
     @Transactional
+    public PlannedPaymentDTO editPlannedPaymentById(int plannedPaymentId, PlannedPaymentRequestDTO plannedPaymentRequestDTO, int loggedUserId) {
+        User user = getUserById(loggedUserId);
+        PlannedPayment plannedPayment = getPlannedPaymentById(plannedPaymentId);
+        checkAccountAccessRights(plannedPayment.getAccount(), user);
+        Category category = getCategoryById(plannedPaymentRequestDTO.getCategoryId());
+        checkSufficientFunds(plannedPayment.getAccount().getBalance(), plannedPaymentRequestDTO.getAmount());
+        plannedPayment.setCategory(category);
+        plannedPayment.setDescription(plannedPaymentRequestDTO.getDescription());
+        plannedPayment.setAmount(plannedPaymentRequestDTO.getAmount());
+        plannedPayment.setDate(plannedPaymentRequestDTO.getDate());
+        plannedPayment.setFrequency(getFrequencyById(plannedPaymentRequestDTO.getFrequencyId()));
+        plannedPaymentRepository.save(plannedPayment);
+        return mapper.map(plannedPayment, PlannedPaymentDTO.class);
+    }
+
+    @Transactional
     //@Scheduled(fixedDelay = 2000) // test - every 2 seconds
     @Scheduled(fixedDelay = 24 * 60 * 60 * 1000) // every 24 hours
     public void processPlannedPayments() {
