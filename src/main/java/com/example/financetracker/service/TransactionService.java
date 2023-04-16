@@ -1,6 +1,7 @@
 package com.example.financetracker.service;
 
 import com.example.financetracker.model.DTOs.TransactionDTO;
+import com.example.financetracker.model.DTOs.TransactionEditRequestDTO;
 import com.example.financetracker.model.DTOs.TransactionRequestDTO;
 import com.example.financetracker.model.entities.Account;
 import com.example.financetracker.model.entities.Category;
@@ -49,10 +50,7 @@ public class TransactionService extends AbstractService{
     public TransactionDTO deleteTransactionById(int transactionId, int loggedUserId) {
         User user = getUserById(loggedUserId);
         Transaction transaction = getTransactionById(transactionId);
-        if (!transaction.getAccount().getOwner().equals(user)){
-            throw new UnauthorizedException("Unauthorized access. The service cannot be executed.");
-        }
-
+        checkAccessRights(transaction, user);
         Account account = transaction.getAccount();
         account = adjustAccountBalanceOnDelete(account, transaction);
         accountRepository.save(account);
@@ -60,6 +58,24 @@ public class TransactionService extends AbstractService{
         return mapper.map(transaction,TransactionDTO.class);
     }
 
+    @Transactional
+    public TransactionDTO editTransactionById(int transactionId, TransactionEditRequestDTO transactionEditRequestDTO, int loggedUserId) {
+        User user = getUserById(loggedUserId);
+        Transaction transaction = getTransactionById(transactionId);
+        checkAccessRights(transaction, user);
+        Account account = transaction.getAccount();
+        Category category = getCategoryById(transactionEditRequestDTO.getCategoryId());
+        account = adjustAccountBalanceOnDelete(account, transaction);
+        accountRepository.save(account);
+        transaction.setDate(LocalDateTime.now());
+        transaction.setAmount(transactionEditRequestDTO.getAmount());
+        transaction.setDescription(transactionEditRequestDTO.getDescription());
+        transaction.setCategory(category);
+        account = adjustAccountBalanceOnCreate(account, transaction);
+        accountRepository.save(account);
+        transactionRepository.save(transaction);
+        return mapper.map(transaction,TransactionDTO.class);
+    }
     private Account adjustAccountBalanceOnDelete(Account account, Transaction transaction){
         BigDecimal transactionAmount = transaction.getAmount();
         BigDecimal newBalance = account.getBalance();
@@ -84,4 +100,9 @@ public class TransactionService extends AbstractService{
         return account;
     }
 
+    private void checkAccessRights(Transaction transaction, User user){
+        if (!transaction.getAccount().getOwner().equals(user)){
+            throw new UnauthorizedException("Unauthorized access. The service cannot be executed.");
+        }
+    }
 }

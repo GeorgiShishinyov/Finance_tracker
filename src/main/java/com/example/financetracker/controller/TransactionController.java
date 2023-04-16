@@ -1,6 +1,7 @@
 package com.example.financetracker.controller;
 
 import com.example.financetracker.model.DTOs.TransactionDTO;
+import com.example.financetracker.model.DTOs.TransactionEditRequestDTO;
 import com.example.financetracker.model.DTOs.TransactionRequestDTO;
 import com.example.financetracker.model.DTOs.TransferDTO;
 import com.example.financetracker.model.entities.Transaction;
@@ -19,6 +20,11 @@ public class TransactionController extends AbstractController{
     @PostMapping("/transactions")
     public TransactionDTO createTransaction(@RequestBody TransactionRequestDTO transactionRequestDTO, HttpSession s) {
         return transactionService.createTransaction(transactionRequestDTO, getLoggedUserId(s));
+    }
+
+    @PutMapping("/transactions/{id}")
+    public TransactionDTO editTransactionById(@PathVariable int id, @RequestBody TransactionEditRequestDTO transactionEditRequestDTO, HttpSession s) {
+        return transactionService.editTransactionById(id, transactionEditRequestDTO, getLoggedUserId(s));
     }
     @DeleteMapping("/transactions/{id}")
     public TransactionDTO deleteTransactionById(@PathVariable int id, HttpSession s) {
