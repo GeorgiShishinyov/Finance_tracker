@@ -1,6 +1,7 @@
 package com.example.financetracker.service;
 
 import com.example.financetracker.model.DTOs.TransactionDTO;
+import com.example.financetracker.model.DTOs.TransactionRequestDTO;
 import com.example.financetracker.model.entities.Account;
 import com.example.financetracker.model.entities.Category;
 import com.example.financetracker.model.entities.Transaction;
@@ -12,12 +13,38 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 
 @Service
 public class TransactionService extends AbstractService{
 
     @Autowired
     private TransactionRepository transactionRepository;
+
+
+    @Transactional
+    public TransactionDTO createTransaction(TransactionRequestDTO transactionRequestDTO, int loggedUserId) {
+        User user = getUserById(loggedUserId);
+        Account account = getAccountById(transactionRequestDTO.getAccountId());
+        if (!account.getOwner().equals(user)){
+            throw new UnauthorizedException("Unauthorized access. The service cannot be executed.");
+        }
+        Category category = getCategoryById(transactionRequestDTO.getCategoryId());
+        if (account.getBalance().compareTo(transactionRequestDTO.getAmount()) <= 0) {
+            throw new UnauthorizedException("Insufficient funds in sender account.");
+        }
+        Transaction transaction = new Transaction();
+        transaction.setDate(LocalDateTime.now());
+        transaction.setAmount(transactionRequestDTO.getAmount());
+        transaction.setDescription(transactionRequestDTO.getDescription());
+        transaction.setAccount(account);
+        transaction.setCategory(category);
+
+        account = adjustAccountBalanceOnCreate(account, transaction);
+        accountRepository.save(account);
+        transactionRepository.save(transaction);
+        return mapper.map(transaction,TransactionDTO.class);
+    }
     @Transactional
     public TransactionDTO deleteTransactionById(int transactionId, int loggedUserId) {
         User user = getUserById(loggedUserId);
@@ -25,15 +52,36 @@ public class TransactionService extends AbstractService{
         if (!transaction.getAccount().getOwner().equals(user)){
             throw new UnauthorizedException("Unauthorized access. The service cannot be executed.");
         }
-        BigDecimal transactionAmount = transaction.getAmount();
+
         Account account = transaction.getAccount();
-        BigDecimal newBalance = account.getBalance().add(transactionAmount);
-        if (transaction.getCategory().getType() == Category.CategoryType.INCOME) {
-            newBalance = newBalance.subtract(transactionAmount);
-        }
-        account.setBalance(newBalance);
+        account = adjustAccountBalanceOnDelete(account, transaction);
         accountRepository.save(account);
         transactionRepository.delete(transaction);
         return mapper.map(transaction,TransactionDTO.class);
     }
+
+    private Account adjustAccountBalanceOnDelete(Account account, Transaction transaction){
+        BigDecimal transactionAmount = transaction.getAmount();
+        BigDecimal newBalance = account.getBalance();
+        if (transaction.getCategory().getType() == Category.CategoryType.INCOME) {
+            newBalance = newBalance.subtract(transactionAmount);
+        } else {
+            newBalance = newBalance.add(transactionAmount);
+        }
+        account.setBalance(newBalance);
+        return account;
+    }
+
+    private Account adjustAccountBalanceOnCreate(Account account, Transaction transaction){
+        BigDecimal transactionAmount = transaction.getAmount();
+        BigDecimal newBalance = account.getBalance();
+        if (transaction.getCategory().getType() == Category.CategoryType.INCOME) {
+            newBalance = newBalance.add(transactionAmount);
+        } else {
+            newBalance = newBalance.subtract(transactionAmount);
+        }
+        account.setBalance(newBalance);
+        return account;
+    }
+
 }

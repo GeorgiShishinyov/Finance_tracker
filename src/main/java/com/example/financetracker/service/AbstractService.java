@@ -1,14 +1,8 @@
 package com.example.financetracker.service;
 
-import com.example.financetracker.model.entities.Account;
-import com.example.financetracker.model.entities.Transaction;
-import com.example.financetracker.model.entities.Transfer;
-import com.example.financetracker.model.entities.User;
+import com.example.financetracker.model.entities.*;
 import com.example.financetracker.model.exceptions.NotFoundException;
-import com.example.financetracker.model.repositories.AccountRepository;
-import com.example.financetracker.model.repositories.TransactionRepository;
-import com.example.financetracker.model.repositories.TransferRepository;
-import com.example.financetracker.model.repositories.UserRepository;
+import com.example.financetracker.model.repositories.*;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -27,6 +21,9 @@ public abstract class AbstractService {
 
     @Autowired
     protected TransactionRepository transactionRepository;
+
+    @Autowired
+    protected CategoryRepository categoryRepository;
     @Autowired
     protected ModelMapper mapper;
 
@@ -44,6 +41,10 @@ public abstract class AbstractService {
 
     protected Transaction getTransactionById(int id){
         return transactionRepository.findById(id).orElseThrow(() -> new NotFoundException("Transaction not found"));
+    }
+
+    protected Category getCategoryById(int id){
+        return categoryRepository.findById(id).orElseThrow(() -> new NotFoundException("Category not found"));
     }
 
 
