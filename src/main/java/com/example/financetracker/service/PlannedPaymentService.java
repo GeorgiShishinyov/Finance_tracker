@@ -5,6 +5,7 @@ import com.example.financetracker.model.DTOs.PlannedPaymentRequestDTO;
 import com.example.financetracker.model.DTOs.TransactionDTO;
 import com.example.financetracker.model.DTOs.TransactionRequestDTO;
 import com.example.financetracker.model.entities.*;
+import com.example.financetracker.model.exceptions.BadRequestException;
 import com.example.financetracker.model.exceptions.NotFoundException;
 import com.example.financetracker.model.exceptions.UnauthorizedException;
 import com.example.financetracker.model.repositories.PlannedPaymentRepository;
@@ -52,6 +53,18 @@ public class PlannedPaymentService extends AbstractService {
         return mapper.map(plannedPayment, PlannedPaymentDTO.class);
     }
 
+    public PlannedPaymentDTO deletePlannedPaymentById(int plannedPaymentId, int loggedUserId) {
+        User user = getUserById(loggedUserId);
+        PlannedPayment plannedPayment = getPlannedPaymentById(plannedPaymentId);
+        checkAccountAccessRights(plannedPayment.getAccount(), user);
+        List<Transaction> transactions = transactionRepository.findAllByPlannedPayment(plannedPayment);
+        if (!transactions.isEmpty()) {
+            throw new BadRequestException("Cannot delete planned payment that has related transactions.");
+        }
+        plannedPaymentRepository.delete(plannedPayment);
+        return mapper.map(plannedPayment, PlannedPaymentDTO.class);
+    }
+
     @Transactional
     //@Scheduled(fixedDelay = 2000) // test - every 2 seconds
     @Scheduled(fixedDelay = 24 * 60 * 60 * 1000) // every 24 hours
@@ -96,4 +109,5 @@ public class PlannedPaymentService extends AbstractService {
             throw new UnauthorizedException("Insufficient funds in sender account.");
         }
     }
+
 }

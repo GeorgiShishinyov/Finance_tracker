@@ -22,4 +22,6 @@ public interface TransactionRepository extends JpaRepository<Transaction, Intege
     List<Transaction> findAllByAccount(Account account);
 
     List<Transaction> findByDateBetweenAndCategoryAndAccount(LocalDateTime startDate, LocalDateTime endDate, Category category, Account account);
+
+    List<Transaction> findAllByPlannedPayment(PlannedPayment plannedPayment);
 }

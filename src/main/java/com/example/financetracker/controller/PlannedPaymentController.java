@@ -24,4 +24,9 @@ public class PlannedPaymentController extends AbstractController{
     public PlannedPaymentDTO getPlannedPaymentById(@PathVariable int id, HttpSession s) {
         return plannedPaymentService.getPlannedPaymentById(id, getLoggedUserId(s));
     }
+
+    @DeleteMapping("/planned-payments/{id}")
+    public PlannedPaymentDTO deletePlannedPaymentById(@PathVariable int id, HttpSession s) {
+        return plannedPaymentService.deletePlannedPaymentById(id, getLoggedUserId(s));
+    }
 }
