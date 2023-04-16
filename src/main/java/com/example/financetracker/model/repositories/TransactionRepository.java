@@ -1,9 +1,6 @@
 package com.example.financetracker.model.repositories;
 
-import com.example.financetracker.model.entities.Category;
-import com.example.financetracker.model.entities.Transaction;
-import com.example.financetracker.model.entities.Transfer;
-import com.example.financetracker.model.entities.User;
+import com.example.financetracker.model.entities.*;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -21,4 +18,6 @@ public interface TransactionRepository extends JpaRepository<Transaction, Intege
     void editTransaction(LocalDateTime date, BigDecimal amount, String description, Category category, int id);
 
     List<Transaction> findAllByAccount_Owner(User user);
+
+    List<Transaction> findAllByAccount(Account account);
 }

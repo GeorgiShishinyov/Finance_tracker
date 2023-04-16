@@ -43,4 +43,9 @@ public class TransactionController extends AbstractController{
         return transactionService.getAllTransactionsForUser(id, getLoggedUserId(s));
     }
 
+    @GetMapping("/accounts/{id}/transactions")
+    public List<TransactionDTO> getAllTransactionsForAccount(@PathVariable int id, HttpSession s) {
+        return transactionService.getAllTransactionsForAccount(id, getLoggedUserId(s));
+    }
+
 }

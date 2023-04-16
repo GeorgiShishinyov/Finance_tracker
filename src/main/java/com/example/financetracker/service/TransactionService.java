@@ -102,6 +102,22 @@ public class TransactionService extends AbstractService{
                 .collect(Collectors.toList());
     }
 
+    @Transactional
+    public List<TransactionDTO> getAllTransactionsForAccount(int accountId, int loggedUserId) {
+        User user = getUserById(loggedUserId);
+        Account account = getAccountById(accountId);
+        if (!account.getOwner().equals(user)) {
+            throw new UnauthorizedException("Unauthorized access. The service cannot be executed.");
+        }
+        List<Transaction> transactions = transactionRepository.findAllByAccount(account);
+        if (transactions.isEmpty()) {
+            throw new NotFoundException("Transactions not found");
+        }
+        return transactions.stream()
+                .map(transaction -> mapper.map(transaction, TransactionDTO.class))
+                .collect(Collectors.toList());
+    }
+
     private Account adjustAccountBalanceOnDelete(Account account, Transaction transaction){
         BigDecimal transactionAmount = transaction.getAmount();
         BigDecimal newBalance = account.getBalance();
