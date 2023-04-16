@@ -1,9 +1,6 @@
 package com.example.financetracker.controller;
 
-import com.example.financetracker.model.DTOs.AccountWithOwnerDTO;
-import com.example.financetracker.model.DTOs.CreateAccountDTO;
-import com.example.financetracker.model.DTOs.CreateBudgetDTO;
-import com.example.financetracker.model.DTOs.EditBudgetDTO;
+import com.example.financetracker.model.DTOs.*;
 import com.example.financetracker.model.entities.User;
 import com.example.financetracker.service.BudgetService;
 import jakarta.servlet.http.HttpSession;
@@ -18,10 +15,10 @@ public class BudgetController extends AbstractController{
     @Autowired
     private BudgetService budgetService;
 
-    @PostMapping("/users/{id}/budgets")
-    public CreateBudgetDTO create(@PathVariable int id, @RequestBody CreateBudgetDTO dto, HttpSession s){
+    @PostMapping("/budgets")
+    public BudgetDTO create(@RequestBody CreateBudgetDTO dto, HttpSession s){
         int userId = getLoggedUserId(s);
-        return budgetService.create(dto, id, userId);
+        return budgetService.create(dto, userId);
     }
 
     @PutMapping("budgets/{id}")
@@ -30,15 +27,21 @@ public class BudgetController extends AbstractController{
         return budgetService.edit(dto, id, userId);
     }
 
-    @DeleteMapping("budgets/{id}")
-    public EditBudgetDTO delete(@PathVariable int id, HttpSession s){
+    @DeleteMapping("/budgets/{id}")
+    public DeleteBudgetDTO delete(@PathVariable int id, HttpSession s){
         int userId = getLoggedUserId(s);
         return budgetService.delete(id, userId);
     }
 
-    @GetMapping("users/{id}/budgets")
-    public List<CreateBudgetDTO> getAllBudgets(@PathVariable int id, HttpSession s){
+    @GetMapping("/budgets")
+    public List<CreateBudgetDTO> getAllBudgets(HttpSession s){
         int userId = getLoggedUserId(s);
-        return budgetService.getAllBudgets(id, userId);
+        return budgetService.getAllBudgets(userId);
+    }
+
+    @GetMapping("/budgets/{id}")
+    public DeleteBudgetDTO getById(@PathVariable int id, HttpSession s){
+        int userId = getLoggedUserId(s);
+        return budgetService.getById(id, userId);
     }
 }

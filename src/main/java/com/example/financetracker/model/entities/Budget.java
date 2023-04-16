@@ -1,10 +1,7 @@
 package com.example.financetracker.model.entities;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -13,6 +10,7 @@ import java.time.LocalDateTime;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@ToString
 @Entity(name = "budgets")
 public class Budget {
 
@@ -32,12 +30,15 @@ public class Budget {
     @Column(name = "balance")
     private BigDecimal balance;
 
-    @Column(name = "owner_id")
-    private int ownerId;
+    @ManyToOne
+    @JoinColumn(name = "owner_id")
+    private User owner;
 
-    @Column(name = "currency_id")
-    private int currencyId;
+    @ManyToOne
+    @JoinColumn(name = "currency_id")
+    private Currency currency;
 
-    @Column(name = "category_id")
-    private int categoryId;
+    @ManyToOne
+    @JoinColumn(name = "category_id")
+    private Category category;
 }
