@@ -7,8 +7,13 @@ import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Optional;
+
 @Service
 public abstract class AbstractService {
+
+    @Autowired
+    protected CurrencyRepository currencyRepository;
 
     @Autowired
     protected UserRepository userRepository;
@@ -47,5 +52,11 @@ public abstract class AbstractService {
         return categoryRepository.findById(id).orElseThrow(() -> new NotFoundException("Category not found"));
     }
 
-
+    protected Currency getCurrencyById(int id){
+        Optional<Currency> currency = currencyRepository.findById(id);
+        if(currency.isPresent()){
+            return currency.get();
+        }
+        throw new NotFoundException("No such currency!");
+    }
 }
