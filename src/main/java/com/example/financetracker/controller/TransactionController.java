@@ -31,4 +31,9 @@ public class TransactionController extends AbstractController{
         return transactionService.deleteTransactionById(id, getLoggedUserId(s));
     }
 
+    @GetMapping("/transactions/{id}")
+    public TransactionDTO findTransactionById(@PathVariable int id, HttpSession s) {
+        return transactionService.findTransactionById(id, getLoggedUserId(s));
+    }
+
 }

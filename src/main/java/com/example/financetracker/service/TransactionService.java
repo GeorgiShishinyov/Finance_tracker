@@ -76,6 +76,14 @@ public class TransactionService extends AbstractService{
         transactionRepository.save(transaction);
         return mapper.map(transaction,TransactionDTO.class);
     }
+
+    public TransactionDTO findTransactionById(int transactionId, int loggedUserId) {
+        User user = getUserById(loggedUserId);
+        Transaction transaction = getTransactionById(transactionId);
+        checkAccessRights(transaction, user);
+        return mapper.map(transaction, TransactionDTO.class);
+    }
+
     private Account adjustAccountBalanceOnDelete(Account account, Transaction transaction){
         BigDecimal transactionAmount = transaction.getAmount();
         BigDecimal newBalance = account.getBalance();
@@ -105,4 +113,5 @@ public class TransactionService extends AbstractService{
             throw new UnauthorizedException("Unauthorized access. The service cannot be executed.");
         }
     }
+
 }
