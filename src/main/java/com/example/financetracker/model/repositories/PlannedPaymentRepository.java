@@ -1,5 +1,6 @@
 package com.example.financetracker.model.repositories;
 
+import com.example.financetracker.model.entities.Account;
 import com.example.financetracker.model.entities.PlannedPayment;
 import org.springframework.data.jpa.repository.JpaRepository;
 
@@ -11,4 +12,5 @@ public interface PlannedPaymentRepository extends JpaRepository<PlannedPayment, 
 
     List<PlannedPayment> findAllByDate(LocalDateTime localDateTime);
 
+    List<PlannedPayment> findAllByAccount(Account account);
 }

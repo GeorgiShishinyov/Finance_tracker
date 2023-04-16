@@ -9,6 +9,8 @@ import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 public class PlannedPaymentController extends AbstractController{
 
@@ -29,4 +31,10 @@ public class PlannedPaymentController extends AbstractController{
     public PlannedPaymentDTO deletePlannedPaymentById(@PathVariable int id, HttpSession s) {
         return plannedPaymentService.deletePlannedPaymentById(id, getLoggedUserId(s));
     }
+
+    @GetMapping("/accounts/{id}/planned-payments")
+    public List<PlannedPaymentDTO> getAllPlannedPaymentsForAccount(@PathVariable int id, HttpSession s) {
+        return plannedPaymentService.getAllPlannedPaymentsForAccount(id, getLoggedUserId(s));
+    }
+
 }

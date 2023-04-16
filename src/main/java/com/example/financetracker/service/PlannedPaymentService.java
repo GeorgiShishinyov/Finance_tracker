@@ -21,6 +21,7 @@ import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @EnableScheduling
 @Service
@@ -63,6 +64,19 @@ public class PlannedPaymentService extends AbstractService {
         }
         plannedPaymentRepository.delete(plannedPayment);
         return mapper.map(plannedPayment, PlannedPaymentDTO.class);
+    }
+
+    public List<PlannedPaymentDTO> getAllPlannedPaymentsForAccount(int accountId, int loggedUserId) {
+        User user = getUserById(loggedUserId);
+        Account account = getAccountById(accountId);
+        checkAccountAccessRights(account, user);
+        List<PlannedPayment> plannedPayments = plannedPaymentRepository.findAllByAccount(account);
+        if (plannedPayments.isEmpty()) {
+            throw new NotFoundException("Planned payments not found");
+        }
+        return plannedPayments.stream()
+                .map(plannedPayment -> mapper.map(plannedPayment, PlannedPaymentDTO.class))
+                .collect(Collectors.toList());
     }
 
     @Transactional
