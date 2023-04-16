@@ -3,10 +3,7 @@ package com.example.financetracker.service;
 import com.example.financetracker.model.DTOs.TransactionDTO;
 import com.example.financetracker.model.DTOs.TransactionEditRequestDTO;
 import com.example.financetracker.model.DTOs.TransactionRequestDTO;
-import com.example.financetracker.model.entities.Account;
-import com.example.financetracker.model.entities.Category;
-import com.example.financetracker.model.entities.Transaction;
-import com.example.financetracker.model.entities.User;
+import com.example.financetracker.model.entities.*;
 import com.example.financetracker.model.exceptions.BadRequestException;
 import com.example.financetracker.model.exceptions.NotFoundException;
 import com.example.financetracker.model.exceptions.UnauthorizedException;
@@ -44,7 +41,13 @@ public class TransactionService extends AbstractService {
         transaction.setDescription(transactionRequestDTO.getDescription());
         transaction.setAccount(account);
         transaction.setCategory(category);
-
+        Integer plannedPaymentId = transactionRequestDTO.getPlannedPaymentId();
+        //TODO for refactoring
+        if(plannedPaymentId != null){
+            PlannedPayment plannedPayment = getPlannedPaymentById(plannedPaymentId);
+            transaction.setPlannedPayment(plannedPayment);
+            plannedPaymentRepository.save(plannedPayment);
+        }
         account = adjustAccountBalanceOnCreate(account, transaction);
         accountRepository.save(account);
         transactionRepository.save(transaction);
@@ -55,7 +58,7 @@ public class TransactionService extends AbstractService {
     public TransactionDTO deleteTransactionById(int transactionId, int loggedUserId) {
         User user = getUserById(loggedUserId);
         Transaction transaction = getTransactionById(transactionId);
-        checkAccessRights(transaction, user);
+        checkTransactionAccessRights(transaction, user);
         Account account = transaction.getAccount();
         account = adjustAccountBalanceOnDelete(account, transaction);
         accountRepository.save(account);
@@ -67,7 +70,7 @@ public class TransactionService extends AbstractService {
     public TransactionDTO editTransactionById(int transactionId, TransactionEditRequestDTO transactionEditRequestDTO, int loggedUserId) {
         User user = getUserById(loggedUserId);
         Transaction transaction = getTransactionById(transactionId);
-        checkAccessRights(transaction, user);
+        checkTransactionAccessRights(transaction, user);
         Account account = transaction.getAccount();
         Category category = getCategoryById(transactionEditRequestDTO.getCategoryId());
         account = adjustAccountBalanceOnDelete(account, transaction);
@@ -85,7 +88,7 @@ public class TransactionService extends AbstractService {
     public TransactionDTO findTransactionById(int transactionId, int loggedUserId) {
         User user = getUserById(loggedUserId);
         Transaction transaction = getTransactionById(transactionId);
-        checkAccessRights(transaction, user);
+        checkTransactionAccessRights(transaction, user);
         return mapper.map(transaction, TransactionDTO.class);
     }
 
@@ -167,7 +170,7 @@ public class TransactionService extends AbstractService {
         return account;
     }
 
-    private void checkAccessRights(Transaction transaction, User user) {
+    private void checkTransactionAccessRights(Transaction transaction, User user) {
         if (!transaction.getAccount().getOwner().equals(user)) {
             throw new UnauthorizedException("Unauthorized access. The service cannot be executed.");
         }

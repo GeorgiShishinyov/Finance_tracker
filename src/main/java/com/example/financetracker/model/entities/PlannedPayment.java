@@ -16,8 +16,9 @@ public class PlannedPayment {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
-    @Column(name = "account_id")
-    private int accountId;
+    @ManyToOne
+    @JoinColumn(name = "account_id")
+    private Account account;
 
     @Column(name = "description")
     private String description;
@@ -28,9 +29,11 @@ public class PlannedPayment {
     @Column(name = "amount")
     private BigDecimal amount;
 
-    @Column(name = "category_id")
-    private int categoryId;
+    @ManyToOne
+    @JoinColumn(name = "category_id")
+    private Category category;
 
-    @Column(name = "frequency_id")
-    private int frequencyId;
+    @ManyToOne
+    @JoinColumn(name = "frequency_id")
+    private Frequency frequency;
 }

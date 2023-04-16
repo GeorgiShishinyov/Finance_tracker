@@ -24,6 +24,13 @@ public abstract class AbstractService {
 
     @Autowired
     protected CategoryRepository categoryRepository;
+
+    @Autowired
+    protected FrequencyRepository frequencyRepository;
+
+    @Autowired
+    protected PlannedPaymentRepository plannedPaymentRepository;
+
     @Autowired
     protected ModelMapper mapper;
 
@@ -47,5 +54,12 @@ public abstract class AbstractService {
         return categoryRepository.findById(id).orElseThrow(() -> new NotFoundException("Category not found"));
     }
 
+    protected Frequency getFrequencyById(int id){
+        return frequencyRepository.findById(id).orElseThrow(() -> new NotFoundException("Frequency not found"));
+    }
+
+    protected PlannedPayment getPlannedPaymentById(int id){
+        return plannedPaymentRepository.findById(id).orElseThrow(() -> new NotFoundException("Planned payment not found"));
+    }
 
 }

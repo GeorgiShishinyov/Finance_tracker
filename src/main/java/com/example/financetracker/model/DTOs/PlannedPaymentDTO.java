@@ -1,7 +1,6 @@
 package com.example.financetracker.model.DTOs;
 
-import com.example.financetracker.model.entities.Category;
-import com.example.financetracker.model.entities.PlannedPayment;
+import com.example.financetracker.model.entities.Frequency;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -14,14 +13,14 @@ import java.time.LocalDateTime;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class TransactionDTO {
+public class PlannedPaymentDTO {
 
     private int id;
     private String description;
     private LocalDateTime date;
     private BigDecimal amount;
     private AccountWithoutOwnerDTO account;
-    private Category category;
-    private PlannedPayment plannedPayment;
+    private CategoryDTO category;
+    private Frequency frequency;
 
 }

@@ -19,5 +19,6 @@ public class TransactionRequestDTO {
     private int accountId;
     private BigDecimal amount;
     private int categoryId;
+    private Integer plannedPaymentId;
 
 }
