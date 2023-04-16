@@ -10,6 +10,8 @@ import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 public class TransactionController extends AbstractController{
 
@@ -34,6 +36,11 @@ public class TransactionController extends AbstractController{
     @GetMapping("/transactions/{id}")
     public TransactionDTO findTransactionById(@PathVariable int id, HttpSession s) {
         return transactionService.findTransactionById(id, getLoggedUserId(s));
+    }
+
+    @GetMapping("/users/{id}/transactions")
+    public List<TransactionDTO> getAllTransactionsForUser(@PathVariable int id, HttpSession s) {
+        return transactionService.getAllTransactionsForUser(id, getLoggedUserId(s));
     }
 
 }

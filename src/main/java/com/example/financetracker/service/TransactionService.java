@@ -7,6 +7,7 @@ import com.example.financetracker.model.entities.Account;
 import com.example.financetracker.model.entities.Category;
 import com.example.financetracker.model.entities.Transaction;
 import com.example.financetracker.model.entities.User;
+import com.example.financetracker.model.exceptions.NotFoundException;
 import com.example.financetracker.model.exceptions.UnauthorizedException;
 import com.example.financetracker.model.repositories.TransactionRepository;
 import jakarta.transaction.Transactional;
@@ -15,6 +16,8 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class TransactionService extends AbstractService{
@@ -82,6 +85,21 @@ public class TransactionService extends AbstractService{
         Transaction transaction = getTransactionById(transactionId);
         checkAccessRights(transaction, user);
         return mapper.map(transaction, TransactionDTO.class);
+    }
+
+    @Transactional
+    public List<TransactionDTO> getAllTransactionsForUser(int userId, int loggedUserId) {
+        if (userId != loggedUserId) {
+            throw new UnauthorizedException("Unauthorized access. The service cannot be executed.");
+        }
+        User user = getUserById(userId);
+        List<Transaction> transactions = transactionRepository.findAllByAccount_Owner(user);
+        if (transactions.isEmpty()) {
+            throw new NotFoundException("Transactions not found");
+        }
+        return transactions.stream()
+                .map(transaction -> mapper.map(transaction, TransactionDTO.class))
+                .collect(Collectors.toList());
     }
 
     private Account adjustAccountBalanceOnDelete(Account account, Transaction transaction){
