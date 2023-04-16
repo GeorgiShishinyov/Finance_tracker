@@ -7,6 +7,7 @@ import com.example.financetracker.model.entities.Account;
 import com.example.financetracker.model.entities.Category;
 import com.example.financetracker.model.entities.Transaction;
 import com.example.financetracker.model.entities.User;
+import com.example.financetracker.model.exceptions.BadRequestException;
 import com.example.financetracker.model.exceptions.NotFoundException;
 import com.example.financetracker.model.exceptions.UnauthorizedException;
 import com.example.financetracker.model.repositories.TransactionRepository;
@@ -20,7 +21,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
-public class TransactionService extends AbstractService{
+public class TransactionService extends AbstractService {
 
     @Autowired
     private TransactionRepository transactionRepository;
@@ -30,7 +31,7 @@ public class TransactionService extends AbstractService{
     public TransactionDTO createTransaction(TransactionRequestDTO transactionRequestDTO, int loggedUserId) {
         User user = getUserById(loggedUserId);
         Account account = getAccountById(transactionRequestDTO.getAccountId());
-        if (!account.getOwner().equals(user)){
+        if (!account.getOwner().equals(user)) {
             throw new UnauthorizedException("Unauthorized access. The service cannot be executed.");
         }
         Category category = getCategoryById(transactionRequestDTO.getCategoryId());
@@ -47,8 +48,9 @@ public class TransactionService extends AbstractService{
         account = adjustAccountBalanceOnCreate(account, transaction);
         accountRepository.save(account);
         transactionRepository.save(transaction);
-        return mapper.map(transaction,TransactionDTO.class);
+        return mapper.map(transaction, TransactionDTO.class);
     }
+
     @Transactional
     public TransactionDTO deleteTransactionById(int transactionId, int loggedUserId) {
         User user = getUserById(loggedUserId);
@@ -58,7 +60,7 @@ public class TransactionService extends AbstractService{
         account = adjustAccountBalanceOnDelete(account, transaction);
         accountRepository.save(account);
         transactionRepository.delete(transaction);
-        return mapper.map(transaction,TransactionDTO.class);
+        return mapper.map(transaction, TransactionDTO.class);
     }
 
     @Transactional
@@ -77,7 +79,7 @@ public class TransactionService extends AbstractService{
         account = adjustAccountBalanceOnCreate(account, transaction);
         accountRepository.save(account);
         transactionRepository.save(transaction);
-        return mapper.map(transaction,TransactionDTO.class);
+        return mapper.map(transaction, TransactionDTO.class);
     }
 
     public TransactionDTO findTransactionById(int transactionId, int loggedUserId) {
@@ -118,7 +120,30 @@ public class TransactionService extends AbstractService{
                 .collect(Collectors.toList());
     }
 
-    private Account adjustAccountBalanceOnDelete(Account account, Transaction transaction){
+    public List<TransactionDTO> getFilteredTransactions(LocalDateTime startDate, LocalDateTime endDate, Integer categoryId, Integer accountId, int loggedUserId) {
+        User user = getUserById(loggedUserId);
+        Account account = getAccountById(accountId);
+        if (!account.getOwner().equals(user)) {
+            throw new UnauthorizedException("Unauthorized access. The service cannot be executed.");
+        }
+        Category category = getCategoryById(categoryId);
+        if (startDate.isAfter(LocalDateTime.now())) {
+            throw new BadRequestException("Start date cannot be in the future");
+        }
+
+        if (endDate.isBefore(startDate)) {
+            throw new BadRequestException("Start date cannot be after end date");
+        }
+        List<Transaction> transactions = transactionRepository.findByDateBetweenAndCategoryAndAccount(startDate, endDate, category, account);
+        if (transactions.isEmpty()) {
+            throw new NotFoundException("Transactions not found");
+        }
+        return transactions.stream()
+                .map(transaction -> mapper.map(transaction, TransactionDTO.class))
+                .collect(Collectors.toList());
+    }
+
+    private Account adjustAccountBalanceOnDelete(Account account, Transaction transaction) {
         BigDecimal transactionAmount = transaction.getAmount();
         BigDecimal newBalance = account.getBalance();
         if (transaction.getCategory().getType() == Category.CategoryType.INCOME) {
@@ -130,7 +155,7 @@ public class TransactionService extends AbstractService{
         return account;
     }
 
-    private Account adjustAccountBalanceOnCreate(Account account, Transaction transaction){
+    private Account adjustAccountBalanceOnCreate(Account account, Transaction transaction) {
         BigDecimal transactionAmount = transaction.getAmount();
         BigDecimal newBalance = account.getBalance();
         if (transaction.getCategory().getType() == Category.CategoryType.INCOME) {
@@ -142,10 +167,9 @@ public class TransactionService extends AbstractService{
         return account;
     }
 
-    private void checkAccessRights(Transaction transaction, User user){
-        if (!transaction.getAccount().getOwner().equals(user)){
+    private void checkAccessRights(Transaction transaction, User user) {
+        if (!transaction.getAccount().getOwner().equals(user)) {
             throw new UnauthorizedException("Unauthorized access. The service cannot be executed.");
         }
     }
-
 }

@@ -20,4 +20,6 @@ public interface TransactionRepository extends JpaRepository<Transaction, Intege
     List<Transaction> findAllByAccount_Owner(User user);
 
     List<Transaction> findAllByAccount(Account account);
+
+    List<Transaction> findByDateBetweenAndCategoryAndAccount(LocalDateTime startDate, LocalDateTime endDate, Category category, Account account);
 }
