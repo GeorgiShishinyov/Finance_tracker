@@ -40,7 +40,7 @@ public class BudgetController extends AbstractController{
     }
 
     @GetMapping("/budgets/{id}")
-    public DeleteBudgetDTO getById(@PathVariable int id, HttpSession s){
+    public BudgetWithTransactionsDTO getById(@PathVariable int id, HttpSession s){
         int userId = getLoggedUserId(s);
         return budgetService.getById(id, userId);
     }

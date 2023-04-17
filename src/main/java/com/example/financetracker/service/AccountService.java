@@ -26,7 +26,7 @@ public class AccountService extends AbstractService{
 
     public AccountWithOwnerDTO create(CreateAccountDTO dto, int userId) {
         Account account = mapper.map(dto, Account.class);
-        Currency currency = mapper.map(dto.getCurrency(), Currency.class);
+        Currency currency = getCurrencyById(dto.getCurrencyId());
         account.setCurrency(currency);
         validateAccountData(account);
         User u = getUserById(userId);

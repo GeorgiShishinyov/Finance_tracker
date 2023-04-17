@@ -3,7 +3,6 @@ package com.example.financetracker;
 import jakarta.servlet.http.HttpSession;
 import jakarta.servlet.http.HttpSessionEvent;
 import jakarta.servlet.http.HttpSessionListener;
-import org.hibernate.annotations.Comment;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;

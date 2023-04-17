@@ -2,10 +2,7 @@ package com.example.financetracker.controller;
 
 import com.example.financetracker.model.DTOs.PlannedPaymentDTO;
 import com.example.financetracker.model.DTOs.PlannedPaymentRequestDTO;
-import com.example.financetracker.model.DTOs.TransactionDTO;
 import com.example.financetracker.model.DTOs.TransactionDTOWithoutPlannedPayments;
-import com.example.financetracker.model.entities.PlannedPayment;
-import com.example.financetracker.model.exceptions.UnauthorizedException;
 import com.example.financetracker.service.PlannedPaymentService;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
