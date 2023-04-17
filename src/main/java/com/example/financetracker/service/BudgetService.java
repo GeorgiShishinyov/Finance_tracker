@@ -11,6 +11,7 @@ import com.example.financetracker.model.exceptions.UnauthorizedException;
 import com.example.financetracker.model.repositories.BudgetRepository;
 import com.example.financetracker.model.repositories.TransactionRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -121,13 +122,6 @@ public class BudgetService extends AbstractService{
             if(account.getOwner().getId() == userId && transactionDTO.getDate().isAfter(budget.getStartDate()) &&
                     transactionDTO.getDate().isBefore(budget.getEndDate()) &&
                     budget.getCategory().getId() == transactionDTO.getCategory().getId()){
-                if(transactionDTO.getDate().getDayOfMonth() == LocalDateTime.now().getDayOfMonth() &&
-                        transactionDTO.getDate().getMonthValue() == LocalDateTime.now().getMonthValue() &&
-                        transactionDTO.getDate().getYear() == LocalDateTime.now().getYear()){
-                    System.out.println("tuk e");
-                    budget.setBalance(budget.getBalance().subtract(transactionDTO.getAmount()));
-                    budgetRepository.save(budget);
-                }
                 transactionOnUser.add(transactionDTO);
             }
         }
@@ -141,5 +135,31 @@ public class BudgetService extends AbstractService{
         budgetWithTransactionsDTO.setCategoryId(budget.getCategory().getId());
 
         return budgetWithTransactionsDTO;
+    }
+
+
+    @Scheduled(fixedDelay = 24 * 60 * 60 * 1000) // every 24 hours
+    public void processBudgetBalanceAndTransactions(){
+        List<Budget> budgets = budgetRepository.findAll();
+        for(Budget budget : budgets){
+            int userId = budget.getOwner().getId();
+            List<TransactionDTO> transactions = transactionService.getAllTransactionsForUser(budget.getOwner().getId(), userId);
+            for(TransactionDTO transactionDTO : transactions){
+                AccountWithOwnerDTO account = accountService.getById(transactionDTO.getAccount().getId(), userId);
+                if(account.getOwner().getId() == userId && transactionDTO.getDate().isAfter(budget.getStartDate()) &&
+                        transactionDTO.getDate().isBefore(budget.getEndDate()) &&
+                        budget.getCategory().getId() == transactionDTO.getCategory().getId()){
+                    if(transactionDTO.getDate().getDayOfMonth() == LocalDateTime.now().getDayOfMonth() &&
+                            transactionDTO.getDate().getMonthValue() == LocalDateTime.now().getMonthValue() &&
+                            transactionDTO.getDate().getYear() == LocalDateTime.now().getYear() &&
+                            transactionDTO.getCategory().getType() == Category.CategoryType.EXPENSE){
+                        if(budget.getBalance().subtract(transactionDTO.getAmount()).compareTo(BigDecimal.ZERO) > 0) {
+                            budget.setBalance(budget.getBalance().subtract(transactionDTO.getAmount()));
+                            budgetRepository.save(budget);
+                        }
+                    }
+                }
+            }
+        }
     }
 }
