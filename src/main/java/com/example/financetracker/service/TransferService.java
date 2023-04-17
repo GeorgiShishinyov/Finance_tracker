@@ -1,8 +1,10 @@
 package com.example.financetracker.service;
 
+import com.example.financetracker.ExchangeRatesAPIClient;
 import com.example.financetracker.model.DTOs.TransferDTO;
 import com.example.financetracker.model.DTOs.TransferRequestDTO;
 import com.example.financetracker.model.entities.Account;
+import com.example.financetracker.model.entities.Currency;
 import com.example.financetracker.model.entities.Transfer;
 import com.example.financetracker.model.entities.User;
 import com.example.financetracker.model.exceptions.NotFoundException;
@@ -14,9 +16,12 @@ import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
+import java.math.MathContext;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @Service
@@ -27,6 +32,9 @@ public class TransferService extends AbstractService {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private ExchangeRatesAPIClient exchangeRatesAPIClient;
 
     public TransferDTO getTransferById(int id, int userId ) {
         Transfer transfer = getTransferById(id);
@@ -59,8 +67,11 @@ public class TransferService extends AbstractService {
         transferRepository.save(transfer);
         accountSender.setBalance(accountSender.getBalance().subtract(transferRequestDTO.getAmount()));
         accountRepository.save(accountSender);
-        //TODO Find API or @Bean for currency conversion.
-        accountReceiver.setBalance(accountReceiver.getBalance().add(transferRequestDTO.getAmount()));
+        //Get the exchange rate for the currency conversion
+        Map<Currency, BigDecimal> exchangeRates = exchangeRatesAPIClient.getExchangeRates(accountSender.getCurrency(), accountReceiver.getCurrency());
+        BigDecimal exchangeRate = exchangeRates.get(accountReceiver.getCurrency()).divide(exchangeRates.get(accountSender.getCurrency()), MathContext.DECIMAL32);
+        BigDecimal convertedAmount = transferRequestDTO.getAmount().multiply(exchangeRate);
+        accountReceiver.setBalance(accountReceiver.getBalance().add(convertedAmount));
         accountRepository.save(accountReceiver);
         return mapper.map(transfer,TransferDTO.class);
     }
