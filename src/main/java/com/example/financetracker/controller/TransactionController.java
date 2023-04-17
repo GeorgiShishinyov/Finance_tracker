@@ -8,7 +8,6 @@ import com.example.financetracker.model.entities.Transaction;
 import com.example.financetracker.service.TransactionService;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.format.datetime.standard.DateTimeFormatterRegistrar;
 import org.springframework.format.support.FormattingConversionService;
 import org.springframework.web.bind.WebDataBinder;

@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -130,13 +131,7 @@ public class TransactionService extends AbstractService {
             throw new UnauthorizedException("Unauthorized access. The service cannot be executed.");
         }
         Category category = getCategoryById(categoryId);
-        if (startDate.isAfter(LocalDateTime.now())) {
-            throw new BadRequestException("Start date cannot be in the future");
-        }
-
-        if (endDate.isBefore(startDate)) {
-            throw new BadRequestException("Start date cannot be after end date");
-        }
+        dateValidation(startDate, endDate);
         List<Transaction> transactions = transactionRepository.findByDateBetweenAndCategoryAndAccount(startDate, endDate, category, account);
         if (transactions.isEmpty()) {
             throw new NotFoundException("Transactions not found");
@@ -174,5 +169,23 @@ public class TransactionService extends AbstractService {
         if (!transaction.getAccount().getOwner().equals(user)) {
             throw new UnauthorizedException("Unauthorized access. The service cannot be executed.");
         }
+    }
+
+    private void dateValidation(LocalDateTime startDate, LocalDateTime endDate){
+        if (startDate.isAfter(LocalDateTime.now())) {
+            throw new BadRequestException("Start date cannot be in the future");
+        }
+
+        if (endDate.isBefore(startDate)) {
+            throw new BadRequestException("Start date cannot be after end date");
+        }
+    }
+    public List<Transaction> getTransactionsByAccountAndDateRange(Account account, LocalDateTime startDate, LocalDateTime endDate) {
+        dateValidation(startDate, endDate);
+        List<Transaction> transactions = transactionRepository.findByAccountAndDateBetween(account, startDate, endDate);
+        if (transactions.isEmpty()){
+            throw new NotFoundException("No transactions found for this account during the specified period.");
+        }
+        return transactions;
     }
 }
