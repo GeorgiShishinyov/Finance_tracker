@@ -47,7 +47,6 @@ public class TransactionService extends AbstractService {
         if(plannedPaymentId != null){
             PlannedPayment plannedPayment = getPlannedPaymentById(plannedPaymentId);
             transaction.setPlannedPayment(plannedPayment);
-            plannedPaymentRepository.save(plannedPayment);
         }
         account = adjustAccountBalanceOnCreate(account, transaction);
         accountRepository.save(account);

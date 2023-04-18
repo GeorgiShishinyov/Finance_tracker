@@ -10,6 +10,7 @@ import lombok.Setter;
 public class Frequency {
 
     public enum FrequencyType {
+        DAILY,
         WEEKLY,
         MONTHLY,
         YEARLY
