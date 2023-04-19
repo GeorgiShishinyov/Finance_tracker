@@ -13,6 +13,8 @@ import jakarta.servlet.http.HttpSession;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.mail.SimpleMailMessage;
@@ -43,21 +45,32 @@ public class UserService extends AbstractService {
     @Autowired
     private SessionCollector sessionCollector;
 
+    private static final Logger logger = LogManager.getLogger(UserService.class);
+
+
     public UserFullInfoDTO register(RegisterDTO dto) {
+        logger.info("1. Starting the registration process for email: {}", dto.getEmail());
+
         if (!dto.getPassword().equals(dto.getConfirmPassword())) {
+            logger.error("2. Passwords do not match.");
             throw new BadRequestException("The passwords do not match!");
         }
         if (!isStrongPassword(dto.getPassword())) {
+            logger.error("3. Weak password.");
             throw new BadRequestException("Weak password. The password must be " +
                     "at least 8 characters long and contain an uppercase letter, " +
                     "a lowercase letter, a number, and a special character.");
         }
         if (!isValidEmail(dto.getEmail())) {
+            logger.error("4. Invalid email.");
             throw new BadRequestException("Invalid email!");
         }
         if (userRepository.existsByEmail(dto.getEmail())) {
+            logger.error("5. Email already exists.");
             throw new BadRequestException("This email already exists.");
         }
+        logger.info("6. The email is valid.");
+
         User u = mapper.map(dto, User.class);
         u.setPassword(encoder.encode(u.getPassword()));
         u.setLastLogin(LocalDateTime.now());
@@ -65,9 +78,14 @@ public class UserService extends AbstractService {
         u.setUniqueCode(uniqueCode);
         u.setExpirationDate(LocalDateTime.now().plusHours(24));
         userRepository.save(u);
+        logger.info("7. User saved to the repository.");
+
         new Thread(() -> {
+            logger.info("8. Sending email validation for email: {}", u.getEmail());
             sendEmailValidation(u.getEmail(), uniqueCode);
         }).start();
+
+        logger.info("9. Registration process completed for email: {}", dto.getEmail());
         return mapper.map(u, UserFullInfoDTO.class);
     }
 
@@ -80,7 +98,7 @@ public class UserService extends AbstractService {
         if (!encoder.matches(dto.getPassword(), u.get().getPassword())) {
             throw new UnauthorizedException("Incorrect credentials.");
         }
-        if(!loginLocationRepository.existsByIpAndUser_Id(ip, u.get().getId())){
+        if (!loginLocationRepository.existsByIpAndUser_Id(ip, u.get().getId())) {
             LoginLocation loginLocation = new LoginLocation();
             loginLocation.setUser(u.get());
             loginLocation.setIp(ip);
@@ -170,9 +188,9 @@ public class UserService extends AbstractService {
         message.setSubject("Email Validation");
         message.setText("""
                 Hi,
-                
+                                
                 Please click the following link to validate your email: http://localhost:7777/email-validation?code=""" + code + """
-                
+                                
                 Best regards,
                 The Finance tracker team""");
         javaMailSender.send(message);
@@ -192,7 +210,7 @@ public class UserService extends AbstractService {
         message.setSubject("Security alert for you linked Finance tracker account");
         message.setText("""
                 Hi,
-                
+                                
                 Your Finance tracker account was just signed in to from a new device. You're getting this email to make sure it was you.
                         
                 If you did not perform this action, please click the following link to sign out of all devices:
@@ -200,7 +218,7 @@ public class UserService extends AbstractService {
                 /invalidate?code=""" + code + """
                                         
                 We recommend that you change your password.
-                
+                                
                 Best regards,
                 The Finance tracker team""");
 
@@ -209,8 +227,8 @@ public class UserService extends AbstractService {
 
     @Transactional
     public ResponseEntity<String> invalidateSessions(Integer userId) {
-        for(HttpSession s : sessionCollector.getAllSessions()){
-            if(s.getAttribute("LOGGED_ID") != null && s.getAttribute("LOGGED_ID") == userId){
+        for (HttpSession s : sessionCollector.getAllSessions()) {
+            if (s.getAttribute("LOGGED_ID") != null && s.getAttribute("LOGGED_ID") == userId) {
                 s.invalidate();
             }
         }

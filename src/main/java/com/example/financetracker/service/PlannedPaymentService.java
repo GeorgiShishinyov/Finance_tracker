@@ -107,7 +107,7 @@ public class PlannedPaymentService extends AbstractService {
     }
 
     @Transactional
-    //@Scheduled(fixedDelay = 2000) // test - every 2 seconds
+    //@Scheduled(fixedDelay = 1000) // test - every 2 seconds
     @Scheduled(fixedDelay = 24 * 60 * 60 * 1000) // every 24 hours
     public void processPlannedPayments() {
         List<PlannedPayment> plannedPayments = plannedPaymentRepository.findAllByDate(LocalDateTime.now().truncatedTo(ChronoUnit.DAYS));
@@ -122,7 +122,7 @@ public class PlannedPaymentService extends AbstractService {
             transactionService.createTransaction(transactionRequestDTO, plannedPayment.getAccount().getOwner().getId());
 
             Frequency frequency = plannedPayment.getFrequency();
-            LocalDateTime nextPaymentDate = null;
+            LocalDateTime nextPaymentDate = plannedPayment.getDate().plusDays(1);
             switch (frequency.getFrequency().toString()) {
                 case "WEEKLY":
                     nextPaymentDate = plannedPayment.getDate().plusWeeks(1);
