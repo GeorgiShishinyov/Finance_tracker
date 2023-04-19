@@ -38,10 +38,12 @@ public class AccountStatementPdfGenerator {
 
         BigDecimal balance = account.getBalance();
 
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+
         document.add(new Paragraph("Transactions for account: " + account.getName()));
         document.add(new Paragraph("Account owner: " + account.getOwner().getFirstName()+" "+account.getOwner().getLastName()));
-        document.add(new Paragraph("Start Date: " + startDate));
-        document.add(new Paragraph("End Date: " + endDate));
+        document.add(new Paragraph("Start Date: " + startDate.format(formatter)));
+        document.add(new Paragraph("End Date: " + endDate.format(formatter)));
         document.add(new Paragraph("Starting balance: " + balance));
         document.add(new Paragraph("\n"));
 
@@ -50,13 +52,13 @@ public class AccountStatementPdfGenerator {
         dateHeader.setHorizontalAlignment(Element.ALIGN_CENTER);
         table.addCell(dateHeader);
 
-        PdfPCell descriptionHeader = new PdfPCell(new Phrase("Description"));
-        descriptionHeader.setHorizontalAlignment(Element.ALIGN_CENTER);
-        table.addCell(descriptionHeader);
-
         PdfPCell categoryHeader = new PdfPCell(new Phrase("Category"));
         categoryHeader.setHorizontalAlignment(Element.ALIGN_CENTER);
         table.addCell(categoryHeader);
+
+        PdfPCell descriptionHeader = new PdfPCell(new Phrase("Description"));
+        descriptionHeader.setHorizontalAlignment(Element.ALIGN_CENTER);
+        table.addCell(descriptionHeader);
 
         PdfPCell amountHeader = new PdfPCell(new Phrase("Amount"));
         amountHeader.setHorizontalAlignment(Element.ALIGN_CENTER);
@@ -65,8 +67,6 @@ public class AccountStatementPdfGenerator {
         PdfPCell balanceHeader = new PdfPCell(new Phrase("Balance"));
         balanceHeader.setHorizontalAlignment(Element.ALIGN_CENTER);
         table.addCell(balanceHeader);
-
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
 
         for (Transaction transaction : transactions) {
             table.addCell(formatter.format(transaction.getDate()));
