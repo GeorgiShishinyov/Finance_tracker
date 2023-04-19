@@ -1,6 +1,5 @@
 package com.example.financetracker.model.repositories;
 
-import com.example.financetracker.model.DTOs.CategoryDTO;
 import com.example.financetracker.model.entities.Category;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;

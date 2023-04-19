@@ -1,6 +1,5 @@
 package com.example.financetracker.model.DTOs;
 
-import com.example.financetracker.model.entities.Category;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
