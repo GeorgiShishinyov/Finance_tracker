@@ -10,4 +10,8 @@ import java.util.List;
 public interface BudgetRepository extends JpaRepository<Budget, Integer> {
 
     List<Budget> findAllByOwnerId(int id);
+
+    List<Budget> findBudgetByOwnerIdAndCategoryIdOrderByBalanceDesc(int ownerId, int currencyId);
+
+    List<Budget> findBudgetByOwnerIdAndCategoryIdOrderByBalance(int ownerId, int currencyId);
 }

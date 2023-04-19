@@ -7,6 +7,7 @@ import com.example.financetracker.model.entities.*;
 import com.example.financetracker.model.exceptions.BadRequestException;
 import com.example.financetracker.model.exceptions.NotFoundException;
 import com.example.financetracker.model.exceptions.UnauthorizedException;
+import com.example.financetracker.model.repositories.BudgetRepository;
 import com.example.financetracker.model.repositories.TransactionRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,6 +17,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -24,6 +26,8 @@ public class TransactionService extends AbstractService {
     @Autowired
     private TransactionRepository transactionRepository;
 
+    @Autowired
+    private BudgetRepository budgetRepository;
 
     @Transactional
     public TransactionDTO createTransaction(TransactionRequestDTO transactionRequestDTO, int loggedUserId) {
@@ -49,8 +53,33 @@ public class TransactionService extends AbstractService {
         }
         account = adjustAccountBalanceOnCreate(account, transaction);
         accountRepository.save(account);
+
+        List<Budget> budgets = budgetRepository.findBudgetByOwnerIdAndCategoryIdOrderByBalanceDesc(loggedUserId, category.getId());
+        if (budgets != null) {
+            Budget budget = returnBudgetWithValidData(transaction.getDate(), budgets);
+            if(budget != null) {
+                budget = adjustBudgetBalanceOnCreate(budget, transaction);
+                budgetRepository.save(budget);
+            }
+        }
         transactionRepository.save(transaction);
         return mapper.map(transaction, TransactionDTO.class);
+    }
+
+    private Budget adjustBudgetBalanceOnCreate(Budget budget, Transaction transaction) {
+        BigDecimal transactionAmount = transaction.getAmount();
+        BigDecimal newBalance = budget.getBalance();
+        newBalance = newBalance.subtract(transactionAmount);
+        budget.setBalance(newBalance);
+        return budget;
+    }
+
+    private Budget adjustBudgetBalanceOnDelete(Budget budget, Transaction transaction) {
+        BigDecimal transactionAmount = transaction.getAmount();
+        BigDecimal newBalance = budget.getBalance();
+        newBalance = newBalance.add(transactionAmount);
+        budget.setBalance(newBalance);
+        return budget;
     }
 
     @Transactional
@@ -61,8 +90,28 @@ public class TransactionService extends AbstractService {
         Account account = transaction.getAccount();
         account = adjustAccountBalanceOnDelete(account, transaction);
         accountRepository.save(account);
+
+        List<Budget> budgets = budgetRepository.findBudgetByOwnerIdAndCategoryIdOrderByBalance(loggedUserId,
+                transaction.getCategory().getId());
+        if (budgets != null) {
+            Budget budget = returnBudgetWithValidData(transaction.getDate(), budgets);
+            if(budget != null) {
+                budget = adjustBudgetBalanceOnDelete(budget, transaction);
+                budgetRepository.save(budget);
+            }
+        }
+
         transactionRepository.delete(transaction);
         return mapper.map(transaction, TransactionDTO.class);
+    }
+
+    private Budget returnBudgetWithValidData(LocalDateTime date, List<Budget> budgets){
+        for(Budget budget : budgets){
+            if(budget.getStartDate().isBefore(date) && budget.getEndDate().isAfter(date)){
+                return budget;
+            }
+        }
+        return null;
     }
 
     @Transactional
@@ -74,12 +123,28 @@ public class TransactionService extends AbstractService {
         Category category = getCategoryById(transactionEditRequestDTO.getCategoryId());
         account = adjustAccountBalanceOnDelete(account, transaction);
         accountRepository.save(account);
+        List<Budget> budgets = budgetRepository.findBudgetByOwnerIdAndCategoryIdOrderByBalance(loggedUserId,
+                transaction.getCategory().getId());
+        if (budgets != null) {
+            Budget budget = returnBudgetWithValidData(transaction.getDate(), budgets);
+            if(budget != null) {
+                budget = adjustBudgetBalanceOnDelete(budget, transaction);
+                budgetRepository.save(budget);
+            }
+        }
         transaction.setDate(LocalDateTime.now());
         transaction.setAmount(transactionEditRequestDTO.getAmount());
         transaction.setDescription(transactionEditRequestDTO.getDescription());
         transaction.setCategory(category);
         account = adjustAccountBalanceOnCreate(account, transaction);
         accountRepository.save(account);
+        if (budgets != null) {
+            Budget budget = returnBudgetWithValidData(transaction.getDate(), budgets);
+            if(budget != null) {
+                budget = adjustBudgetBalanceOnCreate(budget, transaction);
+                budgetRepository.save(budget);
+            }
+        }
         transactionRepository.save(transaction);
         return mapper.map(transaction, TransactionDTO.class);
     }
