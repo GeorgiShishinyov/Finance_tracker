@@ -1,5 +1,6 @@
 package com.example.financetracker.service;
 
+import com.example.financetracker.AccountStatementExcelGenerator;
 import com.example.financetracker.AccountStatementPdfGenerator;
 import com.example.financetracker.model.DTOs.*;
 import com.example.financetracker.model.entities.Account;
@@ -32,6 +33,9 @@ public class AccountService extends AbstractService {
 
     @Autowired
     private AccountStatementPdfGenerator accountStatementPdfGenerator;
+
+    @Autowired
+    private AccountStatementExcelGenerator accountStatementExcelGenerator;
 
     public AccountWithOwnerDTO create(CreateAccountDTO dto, int userId) {
         Account account = mapper.map(dto, Account.class);
@@ -113,5 +117,16 @@ public class AccountService extends AbstractService {
         }
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         return outputStream = accountStatementPdfGenerator.generatePdf(account, startDate, endDate, outputStream);
+    }
+
+    @SneakyThrows
+    public ByteArrayOutputStream generateAccountStatementExcel(int id, LocalDateTime startDate, LocalDateTime endDate, int loggedUserId) {
+        Account account = getAccountById(id);
+        User user = getUserById(loggedUserId);
+        if (!account.getOwner().equals(user)) {
+            throw new UnauthorizedException("Unauthorized access. The service cannot be executed.");
+        }
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        return outputStream = accountStatementExcelGenerator.generateExcel(account, startDate, endDate, outputStream);
     }
 }

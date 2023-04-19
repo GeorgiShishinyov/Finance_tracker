@@ -2,6 +2,7 @@ package com.example.financetracker.controller;
 
 import com.example.financetracker.model.DTOs.*;
 import com.example.financetracker.model.entities.Account;
+import com.example.financetracker.model.exceptions.BadRequestException;
 import com.example.financetracker.model.exceptions.UnauthorizedException;
 import com.example.financetracker.service.AccountService;
 import jakarta.servlet.http.HttpSession;
@@ -57,20 +58,33 @@ public class AccountController extends AbstractController {
 
 
     @GetMapping("/accounts/{id}/export")
-    public ResponseEntity<ByteArrayResource> exportAccountStatementPdf(@PathVariable int id,
-                                                                       @RequestParam(name = "format") String format,
-                                                                       @RequestParam(name = "start-date")
-                                                                       @org.springframework.format.annotation.DateTimeFormat(pattern = "yyyy-MM-dd")
-                                                                       LocalDateTime startDate, @RequestParam(name = "end-date")
-                                                                       @org.springframework.format.annotation.DateTimeFormat(pattern = "yyyy-MM-dd")
-                                                                       LocalDateTime endDate, HttpSession s) {
+    public ResponseEntity<ByteArrayResource> exportAccountStatement(@PathVariable int id,
+                                                                    @RequestParam(name = "format") String format,
+                                                                    @RequestParam(name = "start-date")
+                                                                    @org.springframework.format.annotation.DateTimeFormat(pattern = "yyyy-MM-dd")
+                                                                    LocalDateTime startDate,
+                                                                    @RequestParam(name = "end-date")
+                                                                    @org.springframework.format.annotation.DateTimeFormat(pattern = "yyyy-MM-dd")
+                                                                    LocalDateTime endDate,
+                                                                    HttpSession session) {
 
-        int userId = getLoggedUserId(s);
-        ByteArrayOutputStream outputStream = accountService.generateAccountStatementPdf(id, startDate, endDate, userId);
+        int userId = getLoggedUserId(session);
+        ByteArrayOutputStream outputStream = null;
+        String fileName = null;
+
+        if ("pdf".equalsIgnoreCase(format)) {
+            outputStream = accountService.generateAccountStatementPdf(id, startDate, endDate, userId);
+            fileName = "statement.pdf";
+        } else if ("xlsx".equalsIgnoreCase(format)) {
+            outputStream = accountService.generateAccountStatementExcel(id, startDate, endDate, userId);
+            fileName = "statement.xlsx";
+        } else {
+            throw new BadRequestException("Unsupported format: " + format);
+        }
 
         ByteArrayResource resource = new ByteArrayResource(outputStream.toByteArray());
         HttpHeaders headers = new HttpHeaders();
-        headers.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=statement." + format);
+        headers.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + fileName);
         return ResponseEntity.ok()
                 .headers(headers)
                 .contentLength(resource.contentLength())

@@ -43,7 +43,6 @@ public class TransactionService extends AbstractService {
         transaction.setAccount(account);
         transaction.setCategory(category);
         Integer plannedPaymentId = transactionRequestDTO.getPlannedPaymentId();
-        //TODO for refactoring
         if(plannedPaymentId != null){
             PlannedPayment plannedPayment = getPlannedPaymentById(plannedPaymentId);
             transaction.setPlannedPayment(plannedPayment);
