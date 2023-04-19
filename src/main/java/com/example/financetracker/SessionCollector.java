@@ -7,10 +7,11 @@ import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 @Component
 public class SessionCollector implements HttpSessionListener {
-    private final List<HttpSession> sessions = new ArrayList<>();
+    private final CopyOnWriteArrayList<HttpSession> sessions = new CopyOnWriteArrayList<>();
     @Override
     public void sessionCreated(HttpSessionEvent se) {
         sessions.add(se.getSession());

@@ -45,6 +45,8 @@ public class AccountService extends AbstractService {
         User u = getUserById(userId);
         account.setOwner(u);
         accountRepository.save(account);
+        logger.info("Created account: "+account.getId()+"\n"+account.toString());
+
         return mapper.map(account, AccountWithOwnerDTO.class);
     }
 
@@ -62,6 +64,8 @@ public class AccountService extends AbstractService {
         account.setCurrency(currency);
         validateAccountData(account);
         accountRepository.save(account);
+        logger.info("Updated account: "+account.getId()+"\n"+account.toString());
+
         return mapper.map(account, AccountWithoutOwnerDTO.class);
     }
 
@@ -105,6 +109,8 @@ public class AccountService extends AbstractService {
         if (account.getOwner().getId() == userId) {
             accountRepository.deleteById(id);
         }
+        logger.info("Deleted account: "+account.getId()+"\n"+account.toString());
+
         return mapper.map(account, AccountWithoutOwnerDTO.class);
     }
 

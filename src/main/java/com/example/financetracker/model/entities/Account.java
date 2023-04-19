@@ -42,4 +42,13 @@ public class Account {
     public int hashCode() {
         return Objects.hash(id);
     }
+
+    @Override
+    public String toString() {
+        return  "Account data: " + "\n" +
+                "Name: " + this.name + "\n" +
+                "Owner: " + this.owner.getId() + "\n" +
+                "Balance: " + this.balance + "\n" +
+                "Currency: " + this.currency.getKind().toString();
+    }
 }

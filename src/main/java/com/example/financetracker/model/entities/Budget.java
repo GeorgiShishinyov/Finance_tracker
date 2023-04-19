@@ -41,4 +41,15 @@ public class Budget {
     @ManyToOne
     @JoinColumn(name = "category_id")
     private Category category;
+
+    @Override
+    public String toString() {
+        return  "Budget data: " + "\n" +
+                "Description: " + this.description + "\n" +
+                "Start date: " + this.startDate + "\n" +
+                "End date: " + this.endDate + "\n" +
+                "Owner: " + this.owner.getId() + "\n" +
+                "Balance: " + this.balance + "\n" +
+                "Currency: " + this.currency.getKind().toString();
+    }
 }

@@ -58,13 +58,7 @@ public class TransferService extends AbstractService {
         if (accountSender.getBalance().compareTo(transferRequestDTO.getAmount()) <= 0) {
             throw new UnauthorizedException("Insufficient funds in sender account.");
         }
-        Transfer transfer = new Transfer();
-        transfer.setDate(LocalDateTime.now());
-        transfer.setAccountSender(accountSender);
-        transfer.setAccountReceiver(accountReceiver);
-        transfer.setAmount(transferRequestDTO.getAmount());
-        transfer.setDescription(transferRequestDTO.getDescription());
-        transferRepository.save(transfer);
+
         accountSender.setBalance(accountSender.getBalance().subtract(transferRequestDTO.getAmount()));
         accountRepository.save(accountSender);
         BigDecimal amount = transferRequestDTO.getAmount();
@@ -73,6 +67,14 @@ public class TransferService extends AbstractService {
         }
         accountReceiver.setBalance(accountReceiver.getBalance().add(amount));
         accountRepository.save(accountReceiver);
+        Transfer transfer = new Transfer();
+        transfer.setDate(LocalDateTime.now());
+        transfer.setAccountSender(accountSender);
+        transfer.setAccountReceiver(accountReceiver);
+        transfer.setAmount(transferRequestDTO.getAmount());
+        transfer.setDescription(transferRequestDTO.getDescription());
+        transferRepository.save(transfer);
+        logger.info("Created transfer: "+transfer.getId()+"\n"+transfer.toString());
         return mapper.map(transfer,TransferDTO.class);
     }
 

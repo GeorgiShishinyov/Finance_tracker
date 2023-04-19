@@ -48,6 +48,8 @@ public class BudgetService extends AbstractService{
         validateBudgetInfo(budget);
         System.out.println(budget);
         budgetRepository.save(budget);
+        logger.info("Created budget: "+budget.getId()+"\n"+budget.toString());
+
         return mapper.map(budget, BudgetDTO.class);
     }
 
@@ -82,6 +84,8 @@ public class BudgetService extends AbstractService{
             budget.setOwner(getUserById(userId));
             validateBudgetInfo(budget);
             budgetRepository.save(budget);
+            logger.info("Updated budget: "+budget.getId()+"\n"+budget.toString());
+
             return mapper.map(budget, EditBudgetDTO.class);
         }
         throw new UnauthorizedException("You can not edit a budget on foreign profile!");
@@ -97,6 +101,8 @@ public class BudgetService extends AbstractService{
             throw new UnauthorizedException("You can't delete foreign budget!");
         }
         budgetRepository.deleteById(id);
+        logger.info("Deleted budget: "+budget.getId()+"\n"+budget.toString());
+
         return mapper.map(optBudget.get(), DeleteBudgetDTO.class);
     }
 

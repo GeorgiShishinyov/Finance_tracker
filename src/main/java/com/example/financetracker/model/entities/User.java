@@ -64,4 +64,14 @@ public class User {
     public int hashCode() {
         return Objects.hash(id);
     }
+
+    @Override
+    public String toString() {
+        return "User data: " + "\n" +
+                "Id: " + this.id + "\n" +
+                "Email: " + this.email + "\n" +
+                "First name: " + this.firstName + "\n" +
+                "Last name: " + this.lastName + "\n" +
+                "Date of birth: " + this.dateOfBirth;
+    }
 }

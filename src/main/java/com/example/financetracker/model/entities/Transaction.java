@@ -37,4 +37,13 @@ public class Transaction {
     @JoinColumn(name = "planned_payment_id")
     private PlannedPayment plannedPayment;
 
+    @Override
+    public String toString() {
+        return  "Transaction data: " + "\n" +
+                "Account: " + this.account.getId() + "\n" +
+                "Description: " + this.description + "\n" +
+                "Amount: " + this.amount + "\n" +
+                "Date: " + this.date + "\n" +
+                "Category type: " + this.category.getType().toString();
+    }
 }

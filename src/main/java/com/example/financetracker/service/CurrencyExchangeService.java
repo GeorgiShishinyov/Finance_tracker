@@ -43,6 +43,11 @@ public class CurrencyExchangeService extends AbstractService {
 
         ResponseEntity<CurrencyExchangeDTO> response = restTemplate.exchange(url, HttpMethod.GET, requestEntity, CurrencyExchangeDTO.class);
         if (response.getStatusCode().is2xxSuccessful()) {
+            logger.info("Currency exchange made: " + "\n" +
+                    "Amount: " + amount + "\n" +
+                    "From: " + from.toString() + "\n" + 
+                    "To: " + to.toString());
+
             return response.getBody();
         } else {
             throw new BadRequestException("Currency exchange API error.");
