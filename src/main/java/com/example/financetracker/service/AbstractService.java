@@ -3,6 +3,8 @@ package com.example.financetracker.service;
 import com.example.financetracker.model.entities.*;
 import com.example.financetracker.model.exceptions.NotFoundException;
 import com.example.financetracker.model.repositories.*;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -41,6 +43,8 @@ public abstract class AbstractService {
 
     @Autowired
     protected ModelMapper mapper;
+
+    protected Logger logger = LogManager.getLogger(getClass().getName());
 
     protected User getUserById(int id){
         return userRepository.findById(id).orElseThrow(() -> new NotFoundException("User not found"));

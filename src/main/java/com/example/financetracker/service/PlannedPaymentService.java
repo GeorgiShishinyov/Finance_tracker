@@ -41,6 +41,8 @@ public class PlannedPaymentService extends AbstractService {
         plannedPayment.setDate(plannedPaymentRequestDTO.getDate());
         plannedPayment.setFrequency(getFrequencyById(plannedPaymentRequestDTO.getFrequencyId()));
         plannedPaymentRepository.save(plannedPayment);
+        logger.info("Created planned payment: "+plannedPayment.getId()+"\n"+plannedPayment.toString());
+
         return mapper.map(plannedPayment, PlannedPaymentDTO.class);
     }
 
@@ -60,6 +62,8 @@ public class PlannedPaymentService extends AbstractService {
             throw new BadRequestException("Cannot delete planned payment that has related transactions.");
         }
         plannedPaymentRepository.delete(plannedPayment);
+        logger.info("Deleted planned payment: "+plannedPayment.getId()+"\n"+plannedPayment.toString());
+
         return mapper.map(plannedPayment, PlannedPaymentDTO.class);
     }
 
@@ -103,6 +107,8 @@ public class PlannedPaymentService extends AbstractService {
         plannedPayment.setDate(plannedPaymentRequestDTO.getDate());
         plannedPayment.setFrequency(getFrequencyById(plannedPaymentRequestDTO.getFrequencyId()));
         plannedPaymentRepository.save(plannedPayment);
+        logger.info("Updated planned payment: "+plannedPayment.getId()+"\n"+plannedPayment.toString());
+
         return mapper.map(plannedPayment, PlannedPaymentDTO.class);
     }
 

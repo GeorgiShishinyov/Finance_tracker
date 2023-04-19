@@ -36,4 +36,15 @@ public class PlannedPayment {
     @ManyToOne
     @JoinColumn(name = "frequency_id")
     private Frequency frequency;
+
+    @Override
+    public String toString() {
+        return  "Planned payment data: " + "\n" +
+                "Account: " + this.account.getId() + "\n" +
+                "Description: " + this.description + "\n" +
+                "Amount: " + this.amount + "\n" +
+                "Date: " + this.date + "\n" +
+                "Category type: " + this.category.getType().toString() + "\n" +
+                "Frequency: " + frequency.getFrequency().toString();
+    }
 }

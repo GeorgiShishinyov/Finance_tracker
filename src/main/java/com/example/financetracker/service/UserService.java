@@ -45,75 +45,64 @@ public class UserService extends AbstractService {
     @Autowired
     private SessionCollector sessionCollector;
 
-    private static final Logger logger = LogManager.getLogger(UserService.class);
-
-
     public UserFullInfoDTO register(RegisterDTO dto) {
-        logger.info("1. Starting the registration process for email: {}", dto.getEmail());
-
         if (!dto.getPassword().equals(dto.getConfirmPassword())) {
-            logger.error("2. Passwords do not match.");
             throw new BadRequestException("The passwords do not match!");
         }
         if (!isStrongPassword(dto.getPassword())) {
-            logger.error("3. Weak password.");
             throw new BadRequestException("Weak password. The password must be " +
                     "at least 8 characters long and contain an uppercase letter, " +
                     "a lowercase letter, a number, and a special character.");
         }
         if (!isValidEmail(dto.getEmail())) {
-            logger.error("4. Invalid email.");
             throw new BadRequestException("Invalid email!");
         }
         if (userRepository.existsByEmail(dto.getEmail())) {
-            logger.error("5. Email already exists.");
             throw new BadRequestException("This email already exists.");
         }
-        logger.info("6. The email is valid.");
 
-        User u = mapper.map(dto, User.class);
-        u.setPassword(encoder.encode(u.getPassword()));
-        u.setLastLogin(LocalDateTime.now());
+        User user = mapper.map(dto, User.class);
+        user.setPassword(encoder.encode(user.getPassword()));
+        user.setLastLogin(LocalDateTime.now());
         String uniqueCode = UUID.randomUUID().toString();
-        u.setUniqueCode(uniqueCode);
-        u.setExpirationDate(LocalDateTime.now().plusHours(24));
-        userRepository.save(u);
-        logger.info("7. User saved to the repository.");
+        user.setUniqueCode(uniqueCode);
+        user.setExpirationDate(LocalDateTime.now().plusHours(24));
+        userRepository.save(user);
+        logger.info("Registered user: "+user.toString());
 
         new Thread(() -> {
-            logger.info("8. Sending email validation for email: {}", u.getEmail());
-            sendEmailValidation(u.getEmail(), uniqueCode);
+           sendEmailValidation(user.getEmail(), uniqueCode);
         }).start();
 
-        logger.info("9. Registration process completed for email: {}", dto.getEmail());
-        return mapper.map(u, UserFullInfoDTO.class);
+        return mapper.map(user, UserFullInfoDTO.class);
     }
 
     @Transactional
     public UserFullInfoDTO login(LoginDTO dto, String ip) {
-        Optional<User> u = userRepository.findByEmail(dto.getEmail());
-        if (!u.isPresent()) {
+        Optional<User> optionalUser = userRepository.findByEmail(dto.getEmail());
+        if (!optionalUser.isPresent()) {
+            throw new NotFoundException("User not found.");
+        }
+        User user = optionalUser.get();
+        if (!encoder.matches(dto.getPassword(), user.getPassword())) {
             throw new UnauthorizedException("Incorrect credentials.");
         }
-        if (!encoder.matches(dto.getPassword(), u.get().getPassword())) {
-            throw new UnauthorizedException("Incorrect credentials.");
-        }
-        if (!loginLocationRepository.existsByIpAndUser_Id(ip, u.get().getId())) {
+        if (!loginLocationRepository.existsByIpAndUser_Id(ip, user.getId())) {
             LoginLocation loginLocation = new LoginLocation();
-            loginLocation.setUser(u.get());
+            loginLocation.setUser(user);
             loginLocation.setIp(ip);
             loginLocationRepository.save(loginLocation);
             new Thread(() -> {
                 String ipUniqueCode = UUID.randomUUID().toString();
-                sendEmailIpInvalidation(u.get().getEmail(), u.get().getId(), ipUniqueCode);
+                sendEmailIpInvalidation(user.getEmail(), user.getId(), ipUniqueCode);
             }).start();
         }
-        u.get().setLastLogin(LocalDateTime.now());
-        userRepository.save(u.get());
-        return mapper.map(u.get(), UserFullInfoDTO.class);
+        user.setLastLogin(LocalDateTime.now());
+        userRepository.save(user);
+        logger.info("Logged-in user: "+user.getId()+" with IP: "+ip+"\n"+user.toString());
+        return mapper.map(user, UserFullInfoDTO.class);
     }
 
-    @Transactional
     public UserFullInfoDTO updateUserById(Integer id, UserEditDTO editDto) {
         Optional<User> optionalUser = userRepository.findById(id);
         if (!optionalUser.isPresent()) {
@@ -124,6 +113,7 @@ public class UserService extends AbstractService {
         user.setLastName(editDto.getLastName());
         user.setDateOfBirth(editDto.getDateOfBirth());
         userRepository.save(user);
+        logger.info("Updated user: "+user.getId()+"\n"+user.toString());
         return mapper.map(user, UserFullInfoDTO.class);
     }
 
@@ -147,6 +137,7 @@ public class UserService extends AbstractService {
         }
         user.setPassword(encoder.encode(passwordChangeDTO.getNewPassword()));
         userRepository.save(user);
+        logger.info("Updated user's password: "+user.getId()+"\n"+user.toString());
         return mapper.map(user, UserFullInfoDTO.class);
     }
 
@@ -157,6 +148,7 @@ public class UserService extends AbstractService {
         }
         User user = optionalUser.get();
         userRepository.deleteById(id);
+        logger.info("Deleted user: "+user.getId()+"\n"+user.toString());
         return mapper.map(user, UserFullInfoDTO.class);
     }
 

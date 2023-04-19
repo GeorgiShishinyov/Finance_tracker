@@ -50,6 +50,7 @@ public class TransactionService extends AbstractService {
         account = adjustAccountBalanceOnCreate(account, transaction);
         accountRepository.save(account);
         transactionRepository.save(transaction);
+        logger.info("Created transaction: "+transaction.getId()+"\n"+transaction.toString());
         return mapper.map(transaction, TransactionDTO.class);
     }
 
@@ -62,6 +63,8 @@ public class TransactionService extends AbstractService {
         account = adjustAccountBalanceOnDelete(account, transaction);
         accountRepository.save(account);
         transactionRepository.delete(transaction);
+        logger.info("Deleted transaction: "+transaction.getId()+"\n"+transaction.toString());
+
         return mapper.map(transaction, TransactionDTO.class);
     }
 
@@ -81,6 +84,7 @@ public class TransactionService extends AbstractService {
         account = adjustAccountBalanceOnCreate(account, transaction);
         accountRepository.save(account);
         transactionRepository.save(transaction);
+        logger.info("Updated transaction: "+transaction.getId()+"\n"+transaction.toString());
         return mapper.map(transaction, TransactionDTO.class);
     }
 
