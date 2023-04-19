@@ -1,19 +1,13 @@
 package com.example.financetracker.controller;
 
 import com.example.financetracker.model.DTOs.*;
-import com.example.financetracker.model.entities.User;
 import com.example.financetracker.model.exceptions.UnauthorizedException;
 import com.example.financetracker.service.UserService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
-import lombok.SneakyThrows;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.mail.javamail.JavaMailSenderImpl;
-import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.web.bind.annotation.*;
-
-import java.net.http.HttpRequest;
 
 @RestController
 public class UserController extends AbstractController {
