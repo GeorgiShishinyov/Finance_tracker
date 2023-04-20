@@ -55,7 +55,7 @@ public class TransferService extends AbstractService {
         if (accountSender.equals(accountReceiver)) {
             throw new BadRequestException("Transfer cannot be made to the same account");
         }
-        if (accountSender.getBalance().compareTo(transferRequestDTO.getAmount()) <= 0) {
+        if (accountSender.getBalance().compareTo(transferRequestDTO.getAmount()) < 0) {
             throw new UnauthorizedException("Insufficient funds in sender account.");
         }
 

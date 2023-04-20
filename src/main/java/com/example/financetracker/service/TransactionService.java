@@ -37,9 +37,14 @@ public class TransactionService extends AbstractService {
             throw new UnauthorizedException("Unauthorized access. The service cannot be executed.");
         }
         Category category = getCategoryById(transactionRequestDTO.getCategoryId());
-        if (account.getBalance().compareTo(transactionRequestDTO.getAmount()) <= 0) {
+        //TODO Kameliya Update every getBalance() <= 0
+        if (account.getBalance().compareTo(transactionRequestDTO.getAmount()) < 0) {
             throw new UnauthorizedException("Insufficient funds in sender account.");
         }
+        //TODO Kameliya Add type of currency in TransactionRequestDTO
+        //TODO Kameliya Check all writted queries in repositories
+        //TODO Kameliya Review all validations for transactions and transfers
+        //TODO Kameliya remove Planned payment in transaction request DTO
         Transaction transaction = new Transaction();
         transaction.setDate(LocalDateTime.now());
         transaction.setAmount(transactionRequestDTO.getAmount());
@@ -53,7 +58,7 @@ public class TransactionService extends AbstractService {
         }
         account = adjustAccountBalanceOnCreate(account, transaction);
         accountRepository.save(account);
-
+        //TODO Georgi add start - end day and remove order by ->
         List<Budget> budgets = budgetRepository.findBudgetByOwnerIdAndCategoryIdOrderByBalanceDesc(loggedUserId, category.getId());
         if (budgets != null) {
             Budget budget = returnBudgetWithValidData(transaction.getDate(), budgets);
