@@ -23,6 +23,6 @@ public class Frequency {
 
     @Column(name = "frequency")
     @Enumerated(EnumType.STRING)
-    private Frequency.FrequencyType frequency;
+    private FrequencyType frequency;
 
 }

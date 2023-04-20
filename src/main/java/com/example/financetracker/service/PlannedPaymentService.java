@@ -127,6 +127,7 @@ public class PlannedPaymentService extends AbstractService {
             transactionRequestDTO.setPlannedPaymentId(plannedPayment.getId());
             transactionService.createTransaction(transactionRequestDTO, plannedPayment.getAccount().getOwner().getId());
 
+            //TODO for refactoring 
             Frequency frequency = plannedPayment.getFrequency();
             LocalDateTime nextPaymentDate = plannedPayment.getDate().plusDays(1);
             switch (frequency.getFrequency().toString()) {

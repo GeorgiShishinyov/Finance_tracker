@@ -18,6 +18,7 @@ public class CurrencyController extends AbstractController{
 
     @GetMapping("/currencies")
     public List<CurrencyDTO> getAllCurrencies(HttpSession s){
+        //TODO for refactoring
         getLoggedUserId(s);
         return currencyService.getAllCurrencies();
     }
