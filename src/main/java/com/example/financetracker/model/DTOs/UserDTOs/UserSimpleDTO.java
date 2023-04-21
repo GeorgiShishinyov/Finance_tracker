@@ -1,6 +1,5 @@
 package com.example.financetracker.model.DTOs.UserDTOs;
 
-import jakarta.persistence.Column;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;

@@ -100,18 +100,6 @@ public class UserService extends AbstractService {
 
         return mapper.map(user, UserFullInfoDTO.class);
     }
-    public UserFullInfoDTO changePassword(int id, UserPasswordChangeDTO passwordChangeDTO, int loggedUserId) {
-        Optional<User> optionalUser = userRepository.findById(id);
-        User user = verifyUserExistence(optionalUser);
-        checkAuthorization(id, loggedUserId);
-        checkCorrectCredentials(passwordChangeDTO.getPassword(), user.getPassword());
-        checkMatchingPasswords(passwordChangeDTO.getNewPassword(), passwordChangeDTO.getConfirmPassword());
-        user.setPassword(encoder.encode(passwordChangeDTO.getNewPassword()));
-        userRepository.save(user);
-        logger.info("Updated user's password: "+user.getId()+"\n"+user.toString());
-
-        return mapper.map(user, UserFullInfoDTO.class);
-    }
 
     public UserFullInfoDTO deleteUserById(int id, int loggedUserId) {
         Optional<User> optionalUser = userRepository.findById(id);
@@ -130,9 +118,34 @@ public class UserService extends AbstractService {
         user.setVerified(true);
         user.setLastLogin(LocalDateTime.now());
         userRepository.save(user);
+
         return mapper.map(user, UserFullInfoDTO.class);
     }
 
+    public UserFullInfoDTO changePassword(int id, UserPasswordChangeDTO passwordChangeDTO, int loggedUserId) {
+        Optional<User> optionalUser = userRepository.findById(id);
+        User user = verifyUserExistence(optionalUser);
+        checkAuthorization(id, loggedUserId);
+        checkCorrectCredentials(passwordChangeDTO.getPassword(), user.getPassword());
+        checkMatchingPasswords(passwordChangeDTO.getNewPassword(), passwordChangeDTO.getConfirmPassword());
+        user.setPassword(encoder.encode(passwordChangeDTO.getNewPassword()));
+        userRepository.save(user);
+        logger.info("Updated user's password: "+user.getId()+"\n"+user.toString());
+
+        return mapper.map(user, UserFullInfoDTO.class);
+    }
+
+    @Transactional
+    public ResponseEntity<String> invalidateSessions(Integer id) {
+        for (HttpSession s : sessionCollector.getAllSessions()) {
+            if (s.getAttribute("LOGGED_ID") != null && s.getAttribute("LOGGED_ID").equals(id)) {
+                s.invalidate();
+            }
+        }
+        loginLocationRepository.deleteAllByUserId(id);
+
+        return ResponseEntity.ok("Sessions invalidated.");
+    }
     @SneakyThrows
     private void sendEmailValidation(String email, String code) {
         SimpleMailMessage message = new SimpleMailMessage();
@@ -178,17 +191,6 @@ public class UserService extends AbstractService {
         javaMailSender.send(message);
     }
 
-    @Transactional
-    public ResponseEntity<String> invalidateSessions(Integer id) {
-        for (HttpSession s : sessionCollector.getAllSessions()) {
-            if (s.getAttribute("LOGGED_ID") != null && s.getAttribute("LOGGED_ID").equals(id)) {
-                s.invalidate();
-            }
-        }
-        loginLocationRepository.deleteAllByUserId(id);
-        return ResponseEntity.ok("Sessions invalidated.");
-    }
-
     private void checkMatchingPasswords(String password, String confirmPassword) {
         if (!password.equals(confirmPassword)) {
             throw new BadRequestException("The passwords do not match!");
@@ -199,6 +201,7 @@ public class UserService extends AbstractService {
         if (!optionalUser.isPresent()) {
             throw new NotFoundException("User not found.");
         }
+
         return optionalUser.get();
     }
 

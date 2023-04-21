@@ -39,11 +39,6 @@ public class UserController extends AbstractController {
         return userService.updateUserById(id, editDto, getLoggedUserId(s));
     }
 
-    @PutMapping("/users/{id}/password-change")
-    public UserFullInfoDTO changePassword(@Valid @RequestBody UserPasswordChangeDTO passwordChangeDTO, @PathVariable int id, HttpSession s) {
-        return userService.changePassword(id, passwordChangeDTO, getLoggedUserId(s));
-    }
-
     @DeleteMapping("/users/{id}")
     public UserFullInfoDTO deleteUserById(@PathVariable int id, HttpSession s) {
         return userService.deleteUserById(id, getLoggedUserId(s));
@@ -52,6 +47,11 @@ public class UserController extends AbstractController {
     @GetMapping("/email-validation")
     public UserFullInfoDTO validateEmail(@RequestParam("code") String code) {
         return userService.validateCode(code);
+    }
+
+    @PutMapping("/users/{id}/password-change")
+    public UserFullInfoDTO changePassword(@Valid @RequestBody UserPasswordChangeDTO passwordChangeDTO, @PathVariable int id, HttpSession s) {
+        return userService.changePassword(id, passwordChangeDTO, getLoggedUserId(s));
     }
 
     @GetMapping("/users/{id}/invalidate")

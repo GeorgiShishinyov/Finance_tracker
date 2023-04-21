@@ -155,10 +155,4 @@ public class PlannedPaymentService extends AbstractService {
         }
     }
 
-    private void checkSufficientFunds(BigDecimal balance, BigDecimal amount) {
-        if (balance.compareTo(amount) < 0) {
-            throw new UnauthorizedException("Insufficient funds in sender account.");
-        }
-    }
-
 }
