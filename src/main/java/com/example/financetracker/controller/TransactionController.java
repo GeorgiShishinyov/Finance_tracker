@@ -5,6 +5,7 @@ import com.example.financetracker.model.DTOs.TransactionDTOs.TransactionEditRequ
 import com.example.financetracker.model.DTOs.TransactionDTOs.TransactionRequestDTO;
 import com.example.financetracker.service.TransactionService;
 import jakarta.servlet.http.HttpSession;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.datetime.standard.DateTimeFormatterRegistrar;
 import org.springframework.format.support.FormattingConversionService;
@@ -21,14 +22,13 @@ public class TransactionController extends AbstractController {
     @Autowired
     private TransactionService transactionService;
 
-
     @PostMapping("/transactions")
-    public TransactionDTO createTransaction(@RequestBody TransactionRequestDTO transactionRequestDTO, HttpSession s) {
+    public TransactionDTO createTransaction(@Valid @RequestBody TransactionRequestDTO transactionRequestDTO, HttpSession s) {
         return transactionService.createTransaction(transactionRequestDTO, getLoggedUserId(s));
     }
 
     @PutMapping("/transactions/{id}")
-    public TransactionDTO editTransactionById(@PathVariable int id, @RequestBody TransactionEditRequestDTO transactionEditRequestDTO, HttpSession s) {
+    public TransactionDTO editTransactionById(@PathVariable int id, @Valid @RequestBody TransactionEditRequestDTO transactionEditRequestDTO, HttpSession s) {
         return transactionService.editTransactionById(id, transactionEditRequestDTO, getLoggedUserId(s));
     }
 

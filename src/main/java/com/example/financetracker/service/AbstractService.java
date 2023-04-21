@@ -39,7 +39,6 @@ public abstract class AbstractService {
     @Autowired
     protected LoginLocationRepository loginLocationRepository;
 
-
     @Autowired
     protected ModelMapper mapper;
 
@@ -80,6 +79,18 @@ public abstract class AbstractService {
     protected void checkSufficientFunds(BigDecimal balance, BigDecimal amount) {
         if (balance.compareTo(amount) < 0) {
             throw new UnauthorizedException("Insufficient funds in sender account.");
+        }
+    }
+
+    protected void authenticateUser(User accountOwner, User user){
+        if (!accountOwner.equals(user)) {
+            throw new UnauthorizedException("Unauthorized access. The service cannot be executed.");
+        }
+    }
+
+    protected void checkUserAuthorization(int id, int loggedUserId){
+        if (id != loggedUserId) {
+            throw new UnauthorizedException("Unauthorized access. The service cannot be executed.");
         }
     }
 

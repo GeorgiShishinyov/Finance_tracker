@@ -28,10 +28,12 @@ public class RegisterDTO {
 
 
     @NotBlank(message = "First name cannot be blank!")
+    @Size(max = 15, message = "First name cannot be longer than 15 characters")
     private String firstName;
 
 
     @NotBlank(message = "Last name cannot be blank!")
+    @Size(max = 15, message = "Last name cannot be longer than 15 characters")
     private String lastName;
 
     @NotNull(message = "Date of birth cannot be null!")

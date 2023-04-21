@@ -62,7 +62,7 @@ public class TransferService extends AbstractService {
 
     public TransferDTO getTransferById(int id, int loggedUserId) {
         Transfer transfer = transferRepository.findById(id).orElseThrow(() -> new NotFoundException("Transfer not found"));
-        checkTransferAuthorization(transfer.getAccountSender().getOwner().getId(), loggedUserId);
+        checkUserAuthorization(transfer.getAccountSender().getOwner().getId(), loggedUserId);
 
         return mapper.map(transfer, TransferDTO.class);
     }
@@ -85,12 +85,6 @@ public class TransferService extends AbstractService {
                 currencyExchangeService.getExchangedCurrency(fromCurrency.getKind(), toCurrency.getKind(), amount);
 
         return dto.getResult();
-    }
-
-    private void checkTransferAuthorization(int id, int loggedUserId) {
-        if (id != loggedUserId) {
-            throw new UnauthorizedException("You don't have access to this transfer!");
-        }
     }
 
     private void checkTransferAuthorizationByAccountOwners(User sender, User receiver) {
