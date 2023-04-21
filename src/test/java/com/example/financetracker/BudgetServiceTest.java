@@ -7,7 +7,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Optional;
 
-import com.example.financetracker.model.DTOs.CreateBudgetDTO;
+import com.example.financetracker.model.DTOs.BudgetDTOs.CreateBudgetDTO;
 import com.example.financetracker.model.entities.Category;
 import com.example.financetracker.model.exceptions.NotFoundException;
 import com.example.financetracker.model.repositories.CategoryRepository;

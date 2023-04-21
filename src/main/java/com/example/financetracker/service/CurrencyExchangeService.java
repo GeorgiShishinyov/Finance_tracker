@@ -1,27 +1,15 @@
 package com.example.financetracker.service;
 
-import com.example.financetracker.model.DTOs.CurrencyExchangeDTO;
+import com.example.financetracker.model.DTOs.CurrencyDTOs.CurrencyExchangeDTO;
 import com.example.financetracker.model.exceptions.BadRequestException;
-import com.example.financetracker.service.AbstractService;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.util.JSONPObject;
-import com.sun.net.httpserver.Headers;
 import lombok.SneakyThrows;
-import netscape.javascript.JSObject;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
-import org.springframework.web.servlet.function.ServerRequest;
 
-import java.io.File;
-import java.io.InputStream;
 import java.math.BigDecimal;
-import java.net.http.HttpResponse;
-import java.util.Scanner;
 
 
 @Service

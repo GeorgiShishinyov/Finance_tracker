@@ -1,6 +1,6 @@
 package com.example.financetracker.controller;
 
-import com.example.financetracker.model.DTOs.CurrencyDTO;
+import com.example.financetracker.model.DTOs.CurrencyDTOs.CurrencyDTO;
 import com.example.financetracker.service.CurrencyService;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;

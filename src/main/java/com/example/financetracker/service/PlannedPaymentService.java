@@ -1,11 +1,13 @@
 package com.example.financetracker.service;
 
-import com.example.financetracker.model.DTOs.*;
+import com.example.financetracker.model.DTOs.PlannedPaymentDTOs.PlannedPaymentDTO;
+import com.example.financetracker.model.DTOs.PlannedPaymentDTOs.PlannedPaymentRequestDTO;
+import com.example.financetracker.model.DTOs.TransactionDTOs.TransactionDTOWithoutPlannedPayments;
+import com.example.financetracker.model.DTOs.TransactionDTOs.TransactionRequestDTO;
 import com.example.financetracker.model.entities.*;
 import com.example.financetracker.model.exceptions.BadRequestException;
 import com.example.financetracker.model.exceptions.NotFoundException;
 import com.example.financetracker.model.exceptions.UnauthorizedException;
-import com.example.financetracker.model.repositories.PlannedPaymentRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.EnableScheduling;
@@ -13,11 +15,9 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @EnableScheduling
@@ -130,14 +130,17 @@ public class PlannedPaymentService extends AbstractService {
             //TODO for refactoring 
             Frequency frequency = plannedPayment.getFrequency();
             LocalDateTime nextPaymentDate = plannedPayment.getDate().plusDays(1);
-            switch (frequency.getFrequency().toString()) {
-                case "WEEKLY":
+            switch (frequency.getFrequencyType()) {
+                case DAILY:
+                    nextPaymentDate = plannedPayment.getDate().plusDays(1);
+                    break;
+                case WEEKLY:
                     nextPaymentDate = plannedPayment.getDate().plusWeeks(1);
                     break;
-                case "MONTHLY":
+                case MONTHLY:
                     nextPaymentDate = plannedPayment.getDate().plusMonths(1);
                     break;
-                case "YEARLY":
+                case YEARLY:
                     nextPaymentDate = plannedPayment.getDate().plusYears(1);
                     break;
             }
@@ -153,7 +156,7 @@ public class PlannedPaymentService extends AbstractService {
     }
 
     private void checkSufficientFunds(BigDecimal balance, BigDecimal amount) {
-        if (balance.compareTo(amount) <= 0) {
+        if (balance.compareTo(amount) < 0) {
             throw new UnauthorizedException("Insufficient funds in sender account.");
         }
     }

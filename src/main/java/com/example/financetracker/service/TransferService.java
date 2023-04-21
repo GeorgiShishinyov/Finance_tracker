@@ -1,8 +1,8 @@
 package com.example.financetracker.service;
 
-import com.example.financetracker.model.DTOs.CurrencyExchangeDTO;
-import com.example.financetracker.model.DTOs.TransferDTO;
-import com.example.financetracker.model.DTOs.TransferRequestDTO;
+import com.example.financetracker.model.DTOs.CurrencyDTOs.CurrencyExchangeDTO;
+import com.example.financetracker.model.DTOs.TransferDTOs.TransferDTO;
+import com.example.financetracker.model.DTOs.TransferDTOs.TransferRequestDTO;
 import com.example.financetracker.model.entities.Account;
 import com.example.financetracker.model.entities.Currency;
 import com.example.financetracker.model.entities.Transfer;

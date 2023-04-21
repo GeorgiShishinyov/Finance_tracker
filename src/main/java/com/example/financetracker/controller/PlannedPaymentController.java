@@ -1,8 +1,8 @@
 package com.example.financetracker.controller;
 
-import com.example.financetracker.model.DTOs.PlannedPaymentDTO;
-import com.example.financetracker.model.DTOs.PlannedPaymentRequestDTO;
-import com.example.financetracker.model.DTOs.TransactionDTOWithoutPlannedPayments;
+import com.example.financetracker.model.DTOs.PlannedPaymentDTOs.PlannedPaymentDTO;
+import com.example.financetracker.model.DTOs.PlannedPaymentDTOs.PlannedPaymentRequestDTO;
+import com.example.financetracker.model.DTOs.TransactionDTOs.TransactionDTOWithoutPlannedPayments;
 import com.example.financetracker.service.PlannedPaymentService;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;

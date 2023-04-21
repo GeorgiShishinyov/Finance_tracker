@@ -1,6 +1,6 @@
 package com.example.financetracker.controller;
 
-import com.example.financetracker.model.DTOs.*;
+import com.example.financetracker.model.DTOs.UserDTOs.*;
 import com.example.financetracker.model.exceptions.UnauthorizedException;
 import com.example.financetracker.service.UserService;
 import jakarta.servlet.http.HttpServletRequest;

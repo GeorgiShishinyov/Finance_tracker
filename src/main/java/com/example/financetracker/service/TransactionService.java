@@ -1,8 +1,8 @@
 package com.example.financetracker.service;
 
-import com.example.financetracker.model.DTOs.TransactionDTO;
-import com.example.financetracker.model.DTOs.TransactionEditRequestDTO;
-import com.example.financetracker.model.DTOs.TransactionRequestDTO;
+import com.example.financetracker.model.DTOs.TransactionDTOs.TransactionDTO;
+import com.example.financetracker.model.DTOs.TransactionDTOs.TransactionEditRequestDTO;
+import com.example.financetracker.model.DTOs.TransactionDTOs.TransactionRequestDTO;
 import com.example.financetracker.model.entities.*;
 import com.example.financetracker.model.exceptions.BadRequestException;
 import com.example.financetracker.model.exceptions.NotFoundException;
@@ -14,10 +14,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -37,14 +35,11 @@ public class TransactionService extends AbstractService {
             throw new UnauthorizedException("Unauthorized access. The service cannot be executed.");
         }
         Category category = getCategoryById(transactionRequestDTO.getCategoryId());
-        //TODO Kameliya Update every getBalance() <= 0
         if (account.getBalance().compareTo(transactionRequestDTO.getAmount()) < 0) {
             throw new UnauthorizedException("Insufficient funds in sender account.");
         }
         //TODO Kameliya Add type of currency in TransactionRequestDTO
-        //TODO Kameliya Check all writted queries in repositories
         //TODO Kameliya Review all validations for transactions and transfers
-        //TODO Kameliya remove Planned payment in transaction request DTO
         Transaction transaction = new Transaction();
         transaction.setDate(LocalDateTime.now());
         transaction.setAmount(transactionRequestDTO.getAmount());

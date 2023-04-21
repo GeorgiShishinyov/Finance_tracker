@@ -1,7 +1,9 @@
 package com.example.financetracker.controller;
 
-import com.example.financetracker.model.DTOs.*;
-import com.example.financetracker.model.entities.Account;
+import com.example.financetracker.model.DTOs.АccountDTOs.AccountWithOwnerDTO;
+import com.example.financetracker.model.DTOs.АccountDTOs.AccountWithoutOwnerDTO;
+import com.example.financetracker.model.DTOs.АccountDTOs.CreateAccountDTO;
+import com.example.financetracker.model.DTOs.АccountDTOs.EditAccountDTO;
 import com.example.financetracker.model.exceptions.BadRequestException;
 import com.example.financetracker.model.exceptions.UnauthorizedException;
 import com.example.financetracker.service.AccountService;

@@ -1,6 +1,6 @@
 package com.example.financetracker.controller;
 
-import com.example.financetracker.model.DTOs.ErrorDTO;
+import com.example.financetracker.model.DTOs.ErrorDTOs.ErrorDTO;
 import com.example.financetracker.model.exceptions.BadRequestException;
 import com.example.financetracker.model.exceptions.NotFoundException;
 import com.example.financetracker.model.exceptions.UnauthorizedException;

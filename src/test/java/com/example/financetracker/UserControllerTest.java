@@ -1,9 +1,9 @@
 package com.example.financetracker;
 
 import com.example.financetracker.controller.UserController;
-import com.example.financetracker.model.DTOs.LoginDTO;
-import com.example.financetracker.model.DTOs.RegisterDTO;
-import com.example.financetracker.model.DTOs.UserFullInfoDTO;
+import com.example.financetracker.model.DTOs.UserDTOs.LoginDTO;
+import com.example.financetracker.model.DTOs.UserDTOs.RegisterDTO;
+import com.example.financetracker.model.DTOs.UserDTOs.UserFullInfoDTO;
 import com.example.financetracker.model.entities.User;
 import com.example.financetracker.model.exceptions.BadRequestException;
 import com.example.financetracker.service.UserService;

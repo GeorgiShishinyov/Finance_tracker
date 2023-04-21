@@ -1,18 +1,16 @@
 package com.example.financetracker.service;
 
-import com.example.financetracker.model.DTOs.*;
+import com.example.financetracker.model.DTOs.BudgetDTOs.*;
+import com.example.financetracker.model.DTOs.TransactionDTOs.TransactionDTO;
+import com.example.financetracker.model.DTOs.АccountDTOs.AccountWithOwnerDTO;
 import com.example.financetracker.model.entities.Budget;
 import com.example.financetracker.model.entities.Category;
 import com.example.financetracker.model.entities.Currency;
-import com.example.financetracker.model.entities.User;
 import com.example.financetracker.model.exceptions.BadRequestException;
 import com.example.financetracker.model.exceptions.NotFoundException;
 import com.example.financetracker.model.exceptions.UnauthorizedException;
 import com.example.financetracker.model.repositories.BudgetRepository;
-import com.example.financetracker.model.repositories.TransactionRepository;
-import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;

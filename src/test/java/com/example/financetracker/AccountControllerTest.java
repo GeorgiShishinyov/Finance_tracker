@@ -1,14 +1,17 @@
 package com.example.financetracker;
 
 import com.example.financetracker.controller.AccountController;
-import com.example.financetracker.model.DTOs.*;
+import com.example.financetracker.model.DTOs.CurrencyDTOs.CurrencyDTO;
+import com.example.financetracker.model.DTOs.АccountDTOs.AccountWithOwnerDTO;
+import com.example.financetracker.model.DTOs.АccountDTOs.AccountWithoutOwnerDTO;
+import com.example.financetracker.model.DTOs.АccountDTOs.CreateAccountDTO;
+import com.example.financetracker.model.DTOs.АccountDTOs.EditAccountDTO;
 import com.example.financetracker.model.entities.Account;
 import com.example.financetracker.model.entities.Currency;
 import com.example.financetracker.model.entities.User;
 import com.example.financetracker.model.repositories.AccountRepository;
 import com.example.financetracker.model.repositories.UserRepository;
 import com.example.financetracker.service.AccountService;
-import jakarta.servlet.http.HttpSession;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;

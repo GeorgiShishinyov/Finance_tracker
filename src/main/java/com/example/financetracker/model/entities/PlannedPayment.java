@@ -45,6 +45,6 @@ public class PlannedPayment {
                 "Amount: " + this.amount + "\n" +
                 "Date: " + this.date + "\n" +
                 "Category type: " + this.category.getType().toString() + "\n" +
-                "Frequency: " + frequency.getFrequency().toString();
+                "Frequency: " + frequency.getFrequencyType().toString();
     }
 }
