@@ -7,7 +7,6 @@ import com.example.financetracker.model.DTOs.TransactionDTOs.TransactionEditRequ
 import com.example.financetracker.model.DTOs.TransactionDTOs.TransactionRequestDTO;
 import com.example.financetracker.model.entities.*;
 import com.example.financetracker.model.exceptions.BadRequestException;
-import com.example.financetracker.model.exceptions.NotFoundException;
 import com.example.financetracker.model.repositories.BudgetRepository;
 import com.example.financetracker.model.repositories.TransactionRepository;
 import jakarta.transaction.Transactional;
@@ -307,9 +306,4 @@ public class TransactionService extends AbstractService {
         return transactionDTO;
     }
 
-    private void checkIfTransactionsExist(List<Transaction> transactions) {
-        if (transactions.isEmpty()) {
-            throw new NotFoundException("Transactions not found");
-        }
-    }
 }
