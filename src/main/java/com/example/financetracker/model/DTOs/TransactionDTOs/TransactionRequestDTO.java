@@ -1,5 +1,6 @@
 package com.example.financetracker.model.DTOs.TransactionDTOs;
 
+import com.example.financetracker.model.DTOs.CurrencyDTOs.CurrencyDTO;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -18,6 +19,7 @@ public class TransactionRequestDTO {
     private LocalDateTime date;
     private int accountId;
     private BigDecimal amount;
+    private int currencyId;
     private int categoryId;
     private Integer plannedPaymentId;
 

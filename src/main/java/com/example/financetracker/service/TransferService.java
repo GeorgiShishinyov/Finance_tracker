@@ -31,7 +31,7 @@ public class TransferService extends AbstractService {
     private UserRepository userRepository;
 
     @Autowired
-    private CurrencyExchangeService currencyExchangeService;
+    protected CurrencyExchangeService currencyExchangeService;
 
     public TransferDTO getTransferById(int id, int userId ) {
         Transfer transfer = getTransferById(id);

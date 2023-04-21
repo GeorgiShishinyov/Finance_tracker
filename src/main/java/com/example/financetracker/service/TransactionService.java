@@ -1,5 +1,7 @@
 package com.example.financetracker.service;
 
+import com.example.financetracker.model.DTOs.CurrencyDTOs.CurrencyDTO;
+import com.example.financetracker.model.DTOs.CurrencyDTOs.CurrencyExchangeDTO;
 import com.example.financetracker.model.DTOs.TransactionDTOs.TransactionDTO;
 import com.example.financetracker.model.DTOs.TransactionDTOs.TransactionEditRequestDTO;
 import com.example.financetracker.model.DTOs.TransactionDTOs.TransactionRequestDTO;
@@ -27,6 +29,9 @@ public class TransactionService extends AbstractService {
     @Autowired
     private BudgetRepository budgetRepository;
 
+    @Autowired
+    protected CurrencyExchangeService currencyExchangeService;
+
     @Transactional
     public TransactionDTO createTransaction(TransactionRequestDTO transactionRequestDTO, int loggedUserId) {
         User user = getUserById(loggedUserId);
@@ -38,20 +43,26 @@ public class TransactionService extends AbstractService {
         if (account.getBalance().compareTo(transactionRequestDTO.getAmount()) < 0) {
             throw new UnauthorizedException("Insufficient funds in sender account.");
         }
-        //TODO Kameliya Add type of currency in TransactionRequestDTO
-        //TODO Kameliya Review all validations for transactions and transfers
+
+        Currency currency = getCurrencyById(transactionRequestDTO.getCurrencyId());
+        BigDecimal amount = transactionRequestDTO.getAmount();
+        if (currency.getId() != account.getCurrency().getId()) {
+            amount = convertCurrency(currency, account.getCurrency(), amount);
+        }
+
         Transaction transaction = new Transaction();
         transaction.setDate(LocalDateTime.now());
         transaction.setAmount(transactionRequestDTO.getAmount());
         transaction.setDescription(transactionRequestDTO.getDescription());
         transaction.setAccount(account);
         transaction.setCategory(category);
+        transaction.setCurrency(account.getCurrency());
         Integer plannedPaymentId = transactionRequestDTO.getPlannedPaymentId();
         if(plannedPaymentId != null){
             PlannedPayment plannedPayment = getPlannedPaymentById(plannedPaymentId);
             transaction.setPlannedPayment(plannedPayment);
         }
-        account = adjustAccountBalanceOnCreate(account, transaction);
+        account = adjustAccountBalanceOnCreate(account, transaction, amount);
         accountRepository.save(account);
         //TODO Georgi add start - end day and remove order by ->
         List<Budget> budgets = budgetRepository.findBudgetByOwnerIdAndCategoryIdOrderByBalanceDesc(loggedUserId, category.getId());
@@ -64,23 +75,10 @@ public class TransactionService extends AbstractService {
         }
         transactionRepository.save(transaction);
         logger.info("Created transaction: "+transaction.getId()+"\n"+transaction.toString());
-        return mapper.map(transaction, TransactionDTO.class);
-    }
-
-    private Budget adjustBudgetBalanceOnCreate(Budget budget, Transaction transaction) {
-        BigDecimal transactionAmount = transaction.getAmount();
-        BigDecimal newBalance = budget.getBalance();
-        newBalance = newBalance.subtract(transactionAmount);
-        budget.setBalance(newBalance);
-        return budget;
-    }
-
-    private Budget adjustBudgetBalanceOnDelete(Budget budget, Transaction transaction) {
-        BigDecimal transactionAmount = transaction.getAmount();
-        BigDecimal newBalance = budget.getBalance();
-        newBalance = newBalance.add(transactionAmount);
-        budget.setBalance(newBalance);
-        return budget;
+        CurrencyDTO currencyDTO = mapper.map(currency, CurrencyDTO.class);
+        TransactionDTO transactionDTO = mapper.map(transaction, TransactionDTO.class);
+        transactionDTO.setCurrencyDTO(currencyDTO);
+        return transactionDTO;
     }
 
     @Transactional
@@ -89,7 +87,12 @@ public class TransactionService extends AbstractService {
         Transaction transaction = getTransactionById(transactionId);
         checkTransactionAccessRights(transaction, user);
         Account account = transaction.getAccount();
-        account = adjustAccountBalanceOnDelete(account, transaction);
+        BigDecimal originalAmount = transaction.getAmount();
+        BigDecimal convertedAmount = originalAmount;
+        if (transaction.getCurrency().getId() != account.getCurrency().getId()) {
+            convertedAmount = convertCurrency(transaction.getCurrency(), account.getCurrency(), originalAmount);
+        }
+        account.setBalance(account.getBalance().add(convertedAmount));
         accountRepository.save(account);
 
         List<Budget> budgets = budgetRepository.findBudgetByOwnerIdAndCategoryIdOrderByBalance(loggedUserId,
@@ -108,14 +111,6 @@ public class TransactionService extends AbstractService {
         return mapper.map(transaction, TransactionDTO.class);
     }
 
-    private Budget returnBudgetWithValidData(LocalDateTime date, List<Budget> budgets){
-        for(Budget budget : budgets){
-            if(budget.getStartDate().isBefore(date) && budget.getEndDate().isAfter(date)){
-                return budget;
-            }
-        }
-        return null;
-    }
 
     @Transactional
     public TransactionDTO editTransactionById(int transactionId, TransactionEditRequestDTO transactionEditRequestDTO, int loggedUserId) {
@@ -124,10 +119,15 @@ public class TransactionService extends AbstractService {
         checkTransactionAccessRights(transaction, user);
         Account account = transaction.getAccount();
         Category category = getCategoryById(transactionEditRequestDTO.getCategoryId());
-        account = adjustAccountBalanceOnDelete(account, transaction);
+        Currency currency = getCurrencyById(transactionEditRequestDTO.getCurrencyId());
+        BigDecimal originalAmount = transaction.getAmount();
+        BigDecimal convertedAmount = originalAmount;
+        if (transaction.getCurrency().getId() != account.getCurrency().getId()) {
+            convertedAmount = convertCurrency(transaction.getCurrency(), account.getCurrency(), originalAmount);
+        }
+        account = adjustAccountBalanceOnDelete(account, transaction, convertedAmount);
         accountRepository.save(account);
-        List<Budget> budgets = budgetRepository.findBudgetByOwnerIdAndCategoryIdOrderByBalance(loggedUserId,
-                transaction.getCategory().getId());
+        List<Budget> budgets = budgetRepository.findBudgetByOwnerIdAndCategoryIdOrderByBalance(loggedUserId, transaction.getCategory().getId());
         if (budgets != null) {
             Budget budget = returnBudgetWithValidData(transaction.getDate(), budgets);
             if(budget != null) {
@@ -139,7 +139,20 @@ public class TransactionService extends AbstractService {
         transaction.setAmount(transactionEditRequestDTO.getAmount());
         transaction.setDescription(transactionEditRequestDTO.getDescription());
         transaction.setCategory(category);
-        account = adjustAccountBalanceOnCreate(account, transaction);
+        transaction.setCurrency(currency);
+        BigDecimal newAmount = transactionEditRequestDTO.getAmount();
+        BigDecimal convertedNewAmount = newAmount;
+        if (currency.getId() != account.getCurrency().getId()) {
+            convertedNewAmount = convertCurrency(currency, account.getCurrency(), newAmount);
+        }
+        if (transaction.getCategory().getType() == Category.CategoryType.INCOME) {
+            account.setBalance(account.getBalance().subtract(convertedAmount).add(convertedNewAmount));
+        } else {
+            if (account.getBalance().subtract(convertedAmount).compareTo(convertedNewAmount) < 0) {
+                throw new UnauthorizedException("Insufficient funds in sender account.");
+            }
+            account.setBalance(account.getBalance().subtract(convertedNewAmount).add(convertedAmount));
+        }
         accountRepository.save(account);
         if (budgets != null) {
             Budget budget = returnBudgetWithValidData(transaction.getDate(), budgets);
@@ -150,7 +163,10 @@ public class TransactionService extends AbstractService {
         }
         transactionRepository.save(transaction);
         logger.info("Updated transaction: "+transaction.getId()+"\n"+transaction.toString());
-        return mapper.map(transaction, TransactionDTO.class);
+        CurrencyDTO currencyDTO = mapper.map(currency, CurrencyDTO.class);
+        TransactionDTO transactionDTO = mapper.map(transaction, TransactionDTO.class);
+        transactionDTO.setCurrencyDTO(currencyDTO);
+        return transactionDTO;
     }
 
     public TransactionDTO findTransactionById(int transactionId, int loggedUserId) {
@@ -208,25 +224,31 @@ public class TransactionService extends AbstractService {
                 .collect(Collectors.toList());
     }
 
-    private Account adjustAccountBalanceOnDelete(Account account, Transaction transaction) {
-        BigDecimal transactionAmount = transaction.getAmount();
+    private Account adjustAccountBalanceOnDelete(Account account, Transaction transaction, BigDecimal amount) {
         BigDecimal newBalance = account.getBalance();
+        Currency currency = transaction.getCurrency();
+        if (currency.getId() != account.getCurrency().getId()) {
+            amount = convertCurrency(currency, account.getCurrency(), amount);
+        }
         if (transaction.getCategory().getType() == Category.CategoryType.INCOME) {
-            newBalance = newBalance.subtract(transactionAmount);
+            newBalance = newBalance.subtract(amount);
         } else {
-            newBalance = newBalance.add(transactionAmount);
+            newBalance = newBalance.add(amount);
         }
         account.setBalance(newBalance);
         return account;
     }
 
-    private Account adjustAccountBalanceOnCreate(Account account, Transaction transaction) {
-        BigDecimal transactionAmount = transaction.getAmount();
+    private Account adjustAccountBalanceOnCreate(Account account, Transaction transaction, BigDecimal amount) {
         BigDecimal newBalance = account.getBalance();
+        Currency currency = transaction.getCurrency();
+        if (currency.getId() != account.getCurrency().getId()) {
+            amount = convertCurrency(currency, account.getCurrency(), amount);
+        }
         if (transaction.getCategory().getType() == Category.CategoryType.INCOME) {
-            newBalance = newBalance.add(transactionAmount);
+            newBalance = newBalance.add(amount);
         } else {
-            newBalance = newBalance.subtract(transactionAmount);
+            newBalance = newBalance.subtract(amount);
         }
         account.setBalance(newBalance);
         return account;
@@ -255,4 +277,36 @@ public class TransactionService extends AbstractService {
         }
         return transactions;
     }
+
+    private BigDecimal convertCurrency(Currency fromCurrency, Currency toCurrency, BigDecimal amount) {
+        CurrencyExchangeDTO dto =
+                currencyExchangeService.getExchangedCurrency(fromCurrency.getKind(), toCurrency.getKind(), amount);
+        return dto.getResult();
+    }
+
+    private Budget adjustBudgetBalanceOnCreate(Budget budget, Transaction transaction) {
+        BigDecimal transactionAmount = transaction.getAmount();
+        BigDecimal newBalance = budget.getBalance();
+        newBalance = newBalance.subtract(transactionAmount);
+        budget.setBalance(newBalance);
+        return budget;
+    }
+
+    private Budget adjustBudgetBalanceOnDelete(Budget budget, Transaction transaction) {
+        BigDecimal transactionAmount = transaction.getAmount();
+        BigDecimal newBalance = budget.getBalance();
+        newBalance = newBalance.add(transactionAmount);
+        budget.setBalance(newBalance);
+        return budget;
+    }
+
+    private Budget returnBudgetWithValidData(LocalDateTime date, List<Budget> budgets){
+        for(Budget budget : budgets){
+            if(budget.getStartDate().isBefore(date) && budget.getEndDate().isAfter(date)){
+                return budget;
+            }
+        }
+        return null;
+    }
+
 }

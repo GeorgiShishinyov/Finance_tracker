@@ -30,6 +30,9 @@ public class Transaction {
     private BigDecimal amount;
 
     @ManyToOne
+    @JoinColumn(name = "currency_id")
+    private Currency currency;
+    @ManyToOne
     @JoinColumn(name = "category_id")
     private Category category;
 
@@ -43,6 +46,7 @@ public class Transaction {
                 "Account: " + this.account.getId() + "\n" +
                 "Description: " + this.description + "\n" +
                 "Amount: " + this.amount + "\n" +
+                "Currency: " + this.currency.getKind() + "\n" +
                 "Date: " + this.date + "\n" +
                 "Category type: " + this.category.getType().toString();
     }

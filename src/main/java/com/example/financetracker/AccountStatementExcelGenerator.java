@@ -36,7 +36,8 @@ public class AccountStatementExcelGenerator {
         headerRow.createCell(1).setCellValue("Category");
         headerRow.createCell(2).setCellValue("Description");
         headerRow.createCell(3).setCellValue("Amount");
-        headerRow.createCell(4).setCellValue("Balance");
+        headerRow.createCell(4).setCellValue("Currency");
+        headerRow.createCell(5).setCellValue("Balance");
 
         int rowIndex = 1;
         for (Transaction transaction : transactions) {
@@ -45,7 +46,8 @@ public class AccountStatementExcelGenerator {
             row.createCell(1).setCellValue(transaction.getCategory().getName());
             row.createCell(2).setCellValue(transaction.getDescription());
             row.createCell(3).setCellValue(transaction.getAmount().doubleValue());
-            row.createCell(4).setCellValue(balance.doubleValue());
+            row.createCell(4).setCellValue(transaction.getCategory().getName());
+            row.createCell(5).setCellValue(balance.doubleValue());
 
             balance = balance.add(transaction.getAmount());
         }

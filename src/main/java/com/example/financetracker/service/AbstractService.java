@@ -41,6 +41,7 @@ public abstract class AbstractService {
     @Autowired
     protected LoginLocationRepository loginLocationRepository;
 
+
     @Autowired
     protected ModelMapper mapper;
 
