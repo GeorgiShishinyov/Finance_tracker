@@ -25,9 +25,9 @@ public class AccountController extends AbstractController {
     @Autowired
     private AccountService accountService;
 
-    @PostMapping("/users/{id}/accounts")
-    public AccountWithOwnerDTO create(@PathVariable int id, @RequestBody CreateAccountDTO dto, HttpSession s) {
-        getLoggedUserId(s);
+    @PostMapping("/accounts")
+    public AccountWithOwnerDTO create(@RequestBody CreateAccountDTO dto, HttpSession s) {
+        int id = getLoggedUserId(s);
         return accountService.create(dto, id);
     }
 
