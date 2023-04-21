@@ -11,7 +11,7 @@ import java.time.LocalDateTime;
 @Builder
 public class ErrorDTO {
 
-    private String message;
+    private Object message;
     private int status;
     private LocalDateTime time;
 }

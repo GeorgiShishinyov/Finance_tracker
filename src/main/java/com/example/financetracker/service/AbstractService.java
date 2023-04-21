@@ -2,6 +2,7 @@ package com.example.financetracker.service;
 
 import com.example.financetracker.model.entities.*;
 import com.example.financetracker.model.exceptions.NotFoundException;
+import com.example.financetracker.model.exceptions.UnauthorizedException;
 import com.example.financetracker.model.repositories.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -9,6 +10,7 @@ import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.util.Optional;
 
 @Service
@@ -16,12 +18,8 @@ public abstract class AbstractService {
 
     @Autowired
     protected CurrencyRepository currencyRepository;
-
     @Autowired
     protected UserRepository userRepository;
-
-    @Autowired
-    protected TransferRepository transferRepository;
 
     @Autowired
     protected AccountRepository accountRepository;
@@ -51,10 +49,6 @@ public abstract class AbstractService {
         return userRepository.findById(id).orElseThrow(() -> new NotFoundException("User not found"));
     }
 
-    protected Transfer getTransferById(int id){
-        return transferRepository.findById(id).orElseThrow(() -> new NotFoundException("Transfer not found"));
-    }
-
     protected Account getAccountById(int id){
         return accountRepository.findById(id).orElseThrow(() -> new NotFoundException("Account not found"));
     }
@@ -81,6 +75,12 @@ public abstract class AbstractService {
             return currency.get();
         }
         throw new NotFoundException("No such currency!");
+    }
+
+    protected void checkSufficientFunds(BigDecimal balance, BigDecimal amount) {
+        if (balance.compareTo(amount) < 0) {
+            throw new UnauthorizedException("Insufficient funds in sender account.");
+        }
     }
 
 }

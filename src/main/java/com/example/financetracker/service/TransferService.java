@@ -11,15 +11,14 @@ import com.example.financetracker.model.exceptions.BadRequestException;
 import com.example.financetracker.model.exceptions.NotFoundException;
 import com.example.financetracker.model.exceptions.UnauthorizedException;
 import com.example.financetracker.model.repositories.TransferRepository;
-import com.example.financetracker.model.repositories.UserRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class TransferService extends AbstractService {
@@ -28,37 +27,19 @@ public class TransferService extends AbstractService {
     private TransferRepository transferRepository;
 
     @Autowired
-    private UserRepository userRepository;
-
-    @Autowired
     protected CurrencyExchangeService currencyExchangeService;
 
-    public TransferDTO getTransferById(int id, int userId ) {
-        Transfer transfer = getTransferById(id);
-        if (transfer.getAccountSender().getOwner().getId() != userId){
-            throw new UnauthorizedException("You don't have access to this transfer!");
-        }
-        return mapper.map(transfer, TransferDTO.class);
-    }
-
     @Transactional
-    public TransferDTO createTransfer(int id, TransferRequestDTO transferRequestDTO) {
-        User user = userRepository.findUserByIdAndAccountId(id, transferRequestDTO.getAccountSenderId());
-        if(user == null){
+    public TransferDTO createTransfer(int loggedUserId, TransferRequestDTO transferRequestDTO) {
+        User user = userRepository.findUserByIdAndAccountId(loggedUserId, transferRequestDTO.getAccountSenderId());
+        if (user == null) {
             throw new UnauthorizedException("Permission denied. You do not have authorization to make this transfer.");
         }
         Account accountSender = getAccountById(transferRequestDTO.getAccountSenderId());
         Account accountReceiver = getAccountById(transferRequestDTO.getAccountReceiverId());
-        if (!accountReceiver.getOwner().equals(accountSender.getOwner())){
-            throw new UnauthorizedException("Permission denied. You do not have authorization to make this transfer.");
-        }
-        if (accountSender.equals(accountReceiver)) {
-            throw new BadRequestException("Transfer cannot be made to the same account");
-        }
-        if (accountSender.getBalance().compareTo(transferRequestDTO.getAmount()) < 0) {
-            throw new UnauthorizedException("Insufficient funds in sender account.");
-        }
-
+        checkTransferAuthorizationByAccountOwners(accountReceiver.getOwner(), accountSender.getOwner());
+        checkTransferDestinationIsDifferentAccount(accountSender, accountReceiver);
+        checkSufficientFunds(accountSender.getBalance(), transferRequestDTO.getAmount());
         accountSender.setBalance(accountSender.getBalance().subtract(transferRequestDTO.getAmount()));
         accountRepository.save(accountSender);
         BigDecimal amount = transferRequestDTO.getAmount();
@@ -74,25 +55,55 @@ public class TransferService extends AbstractService {
         transfer.setAmount(transferRequestDTO.getAmount());
         transfer.setDescription(transferRequestDTO.getDescription());
         transferRepository.save(transfer);
-        logger.info("Created transfer: "+transfer.getId()+"\n"+transfer.toString());
-        return mapper.map(transfer,TransferDTO.class);
+        logger.info("Created transfer: " + transfer.getId() + "\n" + transfer.toString());
+
+        return mapper.map(transfer, TransferDTO.class);
+    }
+
+    public TransferDTO getTransferById(int id, int loggedUserId) {
+        Transfer transfer = transferRepository.findById(id).orElseThrow(() -> new NotFoundException("Transfer not found"));
+        checkTransferAuthorization(transfer.getAccountSender().getOwner().getId(), loggedUserId);
+
+        return mapper.map(transfer, TransferDTO.class);
+    }
+
+    public List<TransferDTO> getAllTransfersForUser(int loggedUserId) {
+        //TODO Implement pagination
+        List<Transfer> transfers = transferRepository.findByAccountSender_Owner_Id(loggedUserId);
+        if (transfers.isEmpty()) {
+            throw new NotFoundException("No transfers found for the user.");
+        }
+        List<TransferDTO> transferDTOs = transfers.stream()
+                .map(transfer -> mapper.map(transfer, TransferDTO.class))
+                .collect(Collectors.toList());
+
+        return transferDTOs;
     }
 
     private BigDecimal convertCurrency(Currency fromCurrency, Currency toCurrency, BigDecimal amount) {
         CurrencyExchangeDTO dto =
                 currencyExchangeService.getExchangedCurrency(fromCurrency.getKind(), toCurrency.getKind(), amount);
+
         return dto.getResult();
     }
 
-    public List<TransferDTO> getAllTransfersForUser(int loggedUserId) {
-        List<Transfer> transfers = transferRepository.findByAccountSender_Owner_Id(loggedUserId);
-        if (transfers.isEmpty()){
-            throw new NotFoundException("No transfers found for the user.");
+    private void checkTransferAuthorization(int id, int loggedUserId) {
+        if (id != loggedUserId) {
+            throw new UnauthorizedException("You don't have access to this transfer!");
         }
-        List<TransferDTO> transferDTOs = new ArrayList<>();
-        for (Transfer transfer : transfers) {
-            transferDTOs.add(mapper.map(transfer, TransferDTO.class));
-        }
-        return transferDTOs;
     }
+
+    private void checkTransferAuthorizationByAccountOwners(User sender, User receiver) {
+        //check if accounts belong to the same owner
+        if (!sender.equals(receiver)) {
+            throw new UnauthorizedException("Permission denied. You do not have authorization to make this transfer.");
+        }
+    }
+
+    private void checkTransferDestinationIsDifferentAccount(Account accountSender, Account accountReceiver) {
+        if (accountSender.equals(accountReceiver)) {
+            throw new BadRequestException("Transfer cannot be made to the same account");
+        }
+    }
+
 }
