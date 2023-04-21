@@ -132,6 +132,7 @@ public class BudgetService extends AbstractService{
         }
         BudgetWithTransactionsDTO budgetWithTransactionsDTO = new BudgetWithTransactionsDTO();
         budgetWithTransactionsDTO.setTransactions(transactionOnUser);
+        budgetWithTransactionsDTO.setId(id);
         budgetWithTransactionsDTO.setBalance(budget.getBalance());
         budgetWithTransactionsDTO.setDescription(budget.getDescription());
         budgetWithTransactionsDTO.setEndDate(budget.getEndDate());

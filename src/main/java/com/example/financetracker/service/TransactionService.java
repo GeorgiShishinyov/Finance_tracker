@@ -65,12 +65,18 @@ public class TransactionService extends AbstractService {
         account = adjustAccountBalanceOnCreate(account, transaction, amount);
         accountRepository.save(account);
         //TODO Georgi add start - end day and remove order by ->
-        List<Budget> budgets = budgetRepository.findBudgetByOwnerIdAndCategoryIdOrderByBalanceDesc(loggedUserId, category.getId());
-        if (budgets != null) {
-            Budget budget = returnBudgetWithValidData(transaction.getDate(), budgets);
-            if(budget != null) {
-                budget = adjustBudgetBalanceOnCreate(budget, transaction);
-                budgetRepository.save(budget);
+        if(transaction.getCategory().getType() == Category.CategoryType.EXPENSE) {
+            List<Budget> budgets = budgetRepository.findBudgetByOwner_idAndCategory_idAndStartDateIsBeforeAndEndDateIsAfter(loggedUserId,
+                    category.getId(), transaction.getDate(), transaction.getDate());
+            if (budgets != null) {
+                for (Budget budget : budgets) {
+                    BigDecimal amountToSubtractFromBudget = transactionRequestDTO.getAmount();
+                    if (budget.getCurrency().getId() != transaction.getCurrency().getId()) {
+                        amountToSubtractFromBudget = convertCurrency(currency, budget.getCurrency(), amountToSubtractFromBudget);
+                    }
+                    budget = adjustBudgetBalanceOnCreate(budget, amountToSubtractFromBudget);
+                    budgetRepository.save(budget);
+                }
             }
         }
         transactionRepository.save(transaction);
@@ -95,12 +101,15 @@ public class TransactionService extends AbstractService {
         account.setBalance(account.getBalance().add(convertedAmount));
         accountRepository.save(account);
 
-        List<Budget> budgets = budgetRepository.findBudgetByOwnerIdAndCategoryIdOrderByBalance(loggedUserId,
-                transaction.getCategory().getId());
+        List<Budget> budgets = budgetRepository.findBudgetByOwner_idAndCategory_idAndStartDateIsBeforeAndEndDateIsAfter(loggedUserId,
+                transaction.getCategory().getId(), transaction.getDate(), transaction.getDate());
         if (budgets != null) {
-            Budget budget = returnBudgetWithValidData(transaction.getDate(), budgets);
-            if(budget != null) {
-                budget = adjustBudgetBalanceOnDelete(budget, transaction);
+            for (Budget budget : budgets) {
+                BigDecimal amountToSubtractFromBudget = transaction.getAmount();
+                if (budget.getCurrency().getId() != transaction.getCurrency().getId()) {
+                    amountToSubtractFromBudget = convertCurrency(transaction.getCurrency(), budget.getCurrency(), amountToSubtractFromBudget);
+                }
+                budget = adjustBudgetBalanceOnDelete(budget, amountToSubtractFromBudget);
                 budgetRepository.save(budget);
             }
         }
@@ -127,11 +136,15 @@ public class TransactionService extends AbstractService {
         }
         account = adjustAccountBalanceOnDelete(account, transaction, convertedAmount);
         accountRepository.save(account);
-        List<Budget> budgets = budgetRepository.findBudgetByOwnerIdAndCategoryIdOrderByBalance(loggedUserId, transaction.getCategory().getId());
+        List<Budget> budgets = budgetRepository.findBudgetByOwner_idAndCategory_idAndStartDateIsBeforeAndEndDateIsAfter(loggedUserId,
+                transaction.getCategory().getId(), transaction.getDate(), transaction.getDate());
         if (budgets != null) {
-            Budget budget = returnBudgetWithValidData(transaction.getDate(), budgets);
-            if(budget != null) {
-                budget = adjustBudgetBalanceOnDelete(budget, transaction);
+            for (Budget budget : budgets) {
+                BigDecimal amountToSubtractFromBudget = transaction.getAmount();
+                if (budget.getCurrency().getId() != transaction.getCurrency().getId()) {
+                    amountToSubtractFromBudget = convertCurrency(transaction.getCurrency(), budget.getCurrency(), amountToSubtractFromBudget);
+                }
+                budget = adjustBudgetBalanceOnDelete(budget, amountToSubtractFromBudget);
                 budgetRepository.save(budget);
             }
         }
@@ -154,10 +167,15 @@ public class TransactionService extends AbstractService {
             account.setBalance(account.getBalance().subtract(convertedNewAmount).add(convertedAmount));
         }
         accountRepository.save(account);
+        budgets = budgetRepository.findBudgetByOwner_idAndCategory_idAndStartDateIsBeforeAndEndDateIsAfter(loggedUserId,
+                category.getId(), transaction.getDate(), transaction.getDate());
         if (budgets != null) {
-            Budget budget = returnBudgetWithValidData(transaction.getDate(), budgets);
-            if(budget != null) {
-                budget = adjustBudgetBalanceOnCreate(budget, transaction);
+            for (Budget budget : budgets) {
+                BigDecimal amountToSubtractFromBudget = transaction.getAmount();
+                if (budget.getCurrency().getId() != transaction.getCurrency().getId()) {
+                    amountToSubtractFromBudget = convertCurrency(currency, budget.getCurrency(), amountToSubtractFromBudget);
+                }
+                budget = adjustBudgetBalanceOnCreate(budget, amountToSubtractFromBudget);
                 budgetRepository.save(budget);
             }
         }
@@ -284,29 +302,20 @@ public class TransactionService extends AbstractService {
         return dto.getResult();
     }
 
-    private Budget adjustBudgetBalanceOnCreate(Budget budget, Transaction transaction) {
-        BigDecimal transactionAmount = transaction.getAmount();
+    private Budget adjustBudgetBalanceOnCreate(Budget budget, BigDecimal amount) {
+//        BigDecimal transactionAmount = transaction.getAmount();
         BigDecimal newBalance = budget.getBalance();
-        newBalance = newBalance.subtract(transactionAmount);
+        newBalance = newBalance.subtract(amount);
         budget.setBalance(newBalance);
         return budget;
     }
 
-    private Budget adjustBudgetBalanceOnDelete(Budget budget, Transaction transaction) {
-        BigDecimal transactionAmount = transaction.getAmount();
+    private Budget adjustBudgetBalanceOnDelete(Budget budget, BigDecimal amount) {
+//        BigDecimal transactionAmount = transaction.getAmount();
         BigDecimal newBalance = budget.getBalance();
-        newBalance = newBalance.add(transactionAmount);
+        newBalance = newBalance.add(amount);
         budget.setBalance(newBalance);
         return budget;
-    }
-
-    private Budget returnBudgetWithValidData(LocalDateTime date, List<Budget> budgets){
-        for(Budget budget : budgets){
-            if(budget.getStartDate().isBefore(date) && budget.getEndDate().isAfter(date)){
-                return budget;
-            }
-        }
-        return null;
     }
 
 }
