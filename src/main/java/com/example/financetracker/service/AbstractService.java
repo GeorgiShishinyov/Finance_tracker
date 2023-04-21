@@ -16,7 +16,6 @@ public abstract class AbstractService {
 
     @Autowired
     protected CurrencyRepository currencyRepository;
-
     @Autowired
     protected UserRepository userRepository;
 

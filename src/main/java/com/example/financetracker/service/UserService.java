@@ -40,30 +40,20 @@ public class UserService extends AbstractService {
     private SessionCollector sessionCollector;
 
     public UserFullInfoDTO register(RegisterDTO dto) {
-        if (!dto.getPassword().equals(dto.getConfirmPassword())) {
-            throw new BadRequestException("The passwords do not match!");
-        }
-        if (!isStrongPassword(dto.getPassword())) {
-            throw new BadRequestException("Weak password. The password must be " +
-                    "at least 8 characters long and contain an uppercase letter, " +
-                    "a lowercase letter, a number, and a special character.");
-        }
-        if (!isValidEmail(dto.getEmail())) {
-            throw new BadRequestException("Invalid email!");
-        }
+        checkMatchingPasswords(dto.getPassword(), dto.getConfirmPassword());
         if (userRepository.existsByEmail(dto.getEmail())) {
             throw new BadRequestException("This email already exists.");
         }
-
         User user = mapper.map(dto, User.class);
         user.setPassword(encoder.encode(user.getPassword()));
         user.setLastLogin(LocalDateTime.now());
+        // Generate a unique code using UUID, set it to the user object,
+        // and set its expiration date to 24 hours from now
         String uniqueCode = UUID.randomUUID().toString();
         user.setUniqueCode(uniqueCode);
         user.setExpirationDate(LocalDateTime.now().plusHours(24));
         userRepository.save(user);
         logger.info("Registered user: "+user.toString());
-
         new Thread(() -> {
            sendEmailValidation(user.getEmail(), uniqueCode);
         }).start();
@@ -74,18 +64,18 @@ public class UserService extends AbstractService {
     @Transactional
     public UserFullInfoDTO login(LoginDTO dto, String ip) {
         Optional<User> optionalUser = userRepository.findByEmail(dto.getEmail());
-        if (!optionalUser.isPresent()) {
-            throw new NotFoundException("User not found.");
+        User user = verifyUserExistence(optionalUser);
+        checkCorrectCredentials(dto.getPassword(), user.getPassword());
+        if (!user.isVerified()){
+            throw new UnauthorizedException("The user is not verified. Please check you email.");
         }
-        User user = optionalUser.get();
-        if (!encoder.matches(dto.getPassword(), user.getPassword())) {
-            throw new UnauthorizedException("Incorrect credentials.");
-        }
+        // Check if a login location for the given IP and user ID already exists
         if (!loginLocationRepository.existsByIpAndUser_Id(ip, user.getId())) {
             LoginLocation loginLocation = new LoginLocation();
             loginLocation.setUser(user);
             loginLocation.setIp(ip);
             loginLocationRepository.save(loginLocation);
+            //Send an email to the user with a unique code for invalidating the IP address in case it was compromised
             new Thread(() -> {
                 String ipUniqueCode = UUID.randomUUID().toString();
                 sendEmailIpInvalidation(user.getEmail(), user.getId(), ipUniqueCode);
@@ -94,66 +84,43 @@ public class UserService extends AbstractService {
         user.setLastLogin(LocalDateTime.now());
         userRepository.save(user);
         logger.info("Logged-in user: "+user.getId()+" with IP: "+ip+"\n"+user.toString());
+
         return mapper.map(user, UserFullInfoDTO.class);
     }
 
-    public UserFullInfoDTO updateUserById(Integer id, UserEditDTO editDto) {
+    public UserFullInfoDTO updateUserById(int id, UserEditDTO editDto, int loggedUserId) {
         Optional<User> optionalUser = userRepository.findById(id);
-        if (!optionalUser.isPresent()) {
-            throw new NotFoundException("User not found.");
-        }
-        User user = optionalUser.get();
+        checkAuthorization(id, loggedUserId);
+        User user = verifyUserExistence(optionalUser);
         user.setFirstName(editDto.getFirstName());
         user.setLastName(editDto.getLastName());
         user.setDateOfBirth(editDto.getDateOfBirth());
         userRepository.save(user);
         logger.info("Updated user: "+user.getId()+"\n"+user.toString());
+
         return mapper.map(user, UserFullInfoDTO.class);
     }
-
-    public UserFullInfoDTO changePassword(Integer id, UserPasswordChangeDTO passwordChangeDTO) {
+    public UserFullInfoDTO changePassword(int id, UserPasswordChangeDTO passwordChangeDTO, int loggedUserId) {
         Optional<User> optionalUser = userRepository.findById(id);
-        if (!optionalUser.isPresent()) {
-            throw new NotFoundException("User not found.");
-        }
-        User user = optionalUser.get();
-        if (!encoder.matches(passwordChangeDTO.getPassword(), user.getPassword())) {
-            throw new BadRequestException("Incorrect password.");
-        }
-        if (!passwordChangeDTO.getNewPassword().equals(passwordChangeDTO.getConfirmPassword())) {
-            throw new BadRequestException("The passwords do not match!");
-        }
-        if (!isStrongPassword(passwordChangeDTO.getNewPassword())) {
-            throw new BadRequestException("Weak password. The password must be " +
-                    "at least 8 characters long and contain an uppercase letter, " +
-                    "a lowercase letter, a number, and a special character.");
-
-        }
+        User user = verifyUserExistence(optionalUser);
+        checkAuthorization(id, loggedUserId);
+        checkCorrectCredentials(passwordChangeDTO.getPassword(), user.getPassword());
+        checkMatchingPasswords(passwordChangeDTO.getNewPassword(), passwordChangeDTO.getConfirmPassword());
         user.setPassword(encoder.encode(passwordChangeDTO.getNewPassword()));
         userRepository.save(user);
         logger.info("Updated user's password: "+user.getId()+"\n"+user.toString());
+
         return mapper.map(user, UserFullInfoDTO.class);
     }
 
-    public UserFullInfoDTO deleteUserById(Integer id) {
+    public UserFullInfoDTO deleteUserById(int id, int loggedUserId) {
         Optional<User> optionalUser = userRepository.findById(id);
-        if (!optionalUser.isPresent()) {
-            throw new NotFoundException("User not found.");
-        }
-        User user = optionalUser.get();
+        User user = verifyUserExistence(optionalUser);
+        checkAuthorization(id, loggedUserId);
         userRepository.deleteById(id);
         logger.info("Deleted user: "+user.getId()+"\n"+user.toString());
+
         return mapper.map(user, UserFullInfoDTO.class);
-    }
-
-    private boolean isStrongPassword(String password) {
-        String pattern = "^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[@#$%^&+=!])(?=\\S+$).{8,}$";
-        return password.matches(pattern);
-    }
-
-    private boolean isValidEmail(String email) {
-        String pattern = "^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$";
-        return email.matches(pattern);
     }
 
     public UserFullInfoDTO validateCode(String code) {
@@ -212,13 +179,39 @@ public class UserService extends AbstractService {
     }
 
     @Transactional
-    public ResponseEntity<String> invalidateSessions(Integer userId) {
+    public ResponseEntity<String> invalidateSessions(Integer id) {
         for (HttpSession s : sessionCollector.getAllSessions()) {
-            if (s.getAttribute("LOGGED_ID") != null && s.getAttribute("LOGGED_ID") == userId) {
+            if (s.getAttribute("LOGGED_ID") != null && s.getAttribute("LOGGED_ID").equals(id)) {
                 s.invalidate();
             }
         }
-        loginLocationRepository.deleteAllByUserId(userId);
+        loginLocationRepository.deleteAllByUserId(id);
         return ResponseEntity.ok("Sessions invalidated.");
     }
+
+    private void checkMatchingPasswords(String password, String confirmPassword) {
+        if (!password.equals(confirmPassword)) {
+            throw new BadRequestException("The passwords do not match!");
+        }
+    }
+
+    private User verifyUserExistence(Optional<User> optionalUser) {
+        if (!optionalUser.isPresent()) {
+            throw new NotFoundException("User not found.");
+        }
+        return optionalUser.get();
+    }
+
+    private void checkCorrectCredentials(String password, String password1) {
+        if (!encoder.matches(password, password1)) {
+            throw new UnauthorizedException("Incorrect credentials.");
+        }
+    }
+
+    private void checkAuthorization(int id, int loggedUserId) {
+        if (id != loggedUserId){
+            throw new UnauthorizedException("You are not authorized to perform this action.");
+        }
+    }
+
 }
