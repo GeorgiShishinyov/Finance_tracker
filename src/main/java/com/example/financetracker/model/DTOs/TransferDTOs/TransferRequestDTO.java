@@ -21,7 +21,7 @@ public class TransferRequestDTO {
     private int accountSenderId;
     private int accountReceiverId;
     @NotBlank(message = "Description cannot be blank")
-    @Size(max = 100, message = "Description cannot be longer than 100 characters")
+    @Size(max = 50, message = "Description cannot be longer than 50 characters")
     private String description;
     @NotNull(message = "Amount cannot be null")
     @DecimalMin(value = "0.01", message = "Amount should be greater than 0")

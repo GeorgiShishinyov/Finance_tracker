@@ -24,6 +24,7 @@ public class AccountStatementExcelGenerator {
 
     @SneakyThrows
     public ByteArrayOutputStream generateExcel(Account account, LocalDateTime startDate, LocalDateTime endDate, ByteArrayOutputStream outputStream) {
+
         List<Transaction> transactions = transactionService.getTransactionsByAccountAndDateRange(account, startDate, endDate);
 
         Workbook workbook = new XSSFWorkbook();

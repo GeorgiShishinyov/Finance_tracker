@@ -1,4 +1,5 @@
 package com.example.financetracker;
+
 import com.example.financetracker.model.entities.Account;
 import com.example.financetracker.model.entities.Transaction;
 import com.example.financetracker.service.TransactionService;
@@ -14,10 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.io.ByteArrayOutputStream;
-import java.io.OutputStream;
 import java.math.BigDecimal;
-import java.text.SimpleDateFormat;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -29,7 +27,8 @@ public class AccountStatementPdfGenerator {
     private TransactionService transactionService;
 
     @SneakyThrows
-    public ByteArrayOutputStream generatePdf(Account account, LocalDateTime startDate, LocalDateTime endDate, ByteArrayOutputStream outputStream)  {
+    public ByteArrayOutputStream generatePdf(Account account, LocalDateTime startDate, LocalDateTime endDate, ByteArrayOutputStream outputStream) {
+
         List<Transaction> transactions = transactionService.getTransactionsByAccountAndDateRange(account, startDate, endDate);
 
         Document document = new Document();
@@ -41,7 +40,7 @@ public class AccountStatementPdfGenerator {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
 
         document.add(new Paragraph("Transactions for account: " + account.getName()));
-        document.add(new Paragraph("Account owner: " + account.getOwner().getFirstName()+" "+account.getOwner().getLastName()));
+        document.add(new Paragraph("Account owner: " + account.getOwner().getFirstName() + " " + account.getOwner().getLastName()));
         document.add(new Paragraph("Start Date: " + startDate.format(formatter)));
         document.add(new Paragraph("End Date: " + endDate.format(formatter)));
         document.add(new Paragraph("Starting balance: " + balance));
@@ -81,6 +80,7 @@ public class AccountStatementPdfGenerator {
         document.add(table);
 
         document.close();
+
         return outputStream;
     }
 }

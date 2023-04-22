@@ -5,6 +5,7 @@ import com.example.financetracker.model.DTOs.PlannedPaymentDTOs.PlannedPaymentRe
 import com.example.financetracker.model.DTOs.TransactionDTOs.TransactionDTOWithoutPlannedPayments;
 import com.example.financetracker.service.PlannedPaymentService;
 import jakarta.servlet.http.HttpSession;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -17,7 +18,7 @@ public class PlannedPaymentController extends AbstractController{
     private PlannedPaymentService plannedPaymentService;
 
     @PostMapping("/planned-payments")
-    public PlannedPaymentDTO createPlannedPayment(@RequestBody PlannedPaymentRequestDTO plannedPaymentRequestDTO, HttpSession s) {
+    public PlannedPaymentDTO createPlannedPayment(@Valid @RequestBody PlannedPaymentRequestDTO plannedPaymentRequestDTO, HttpSession s) {
         return plannedPaymentService.createPlannedPayment(plannedPaymentRequestDTO, getLoggedUserId(s));
     }
 

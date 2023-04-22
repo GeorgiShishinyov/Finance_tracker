@@ -11,7 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
-import java.util.Optional;
+import java.util.List;
 
 @Service
 public abstract class AbstractService {
@@ -38,7 +38,6 @@ public abstract class AbstractService {
 
     @Autowired
     protected LoginLocationRepository loginLocationRepository;
-
 
     @Autowired
     protected ModelMapper mapper;
@@ -70,11 +69,7 @@ public abstract class AbstractService {
     }
 
     protected Currency getCurrencyById(int id){
-        Optional<Currency> currency = currencyRepository.findById(id);
-        if(currency.isPresent()){
-            return currency.get();
-        }
-        throw new NotFoundException("No such currency!");
+        return currencyRepository.findById(id).orElseThrow(() -> new NotFoundException("Currency not found"));
     }
 
     protected void checkSufficientFunds(BigDecimal balance, BigDecimal amount) {
@@ -83,4 +78,21 @@ public abstract class AbstractService {
         }
     }
 
+    protected void authenticateUser(User accountOwner, User user){
+        if (!accountOwner.equals(user)) {
+            throw new UnauthorizedException("Unauthorized access. The service cannot be executed.");
+        }
+    }
+
+    protected void checkUserAuthorization(int id, int loggedUserId){
+        if (id != loggedUserId) {
+            throw new UnauthorizedException("Unauthorized access. The service cannot be executed.");
+        }
+    }
+
+    protected void checkIfTransactionsExist(List<Transaction> transactions) {
+        if (transactions.isEmpty()) {
+            throw new NotFoundException("Transactions not found");
+        }
+    }
 }

@@ -7,14 +7,12 @@ import com.example.financetracker.model.DTOs.TransactionDTOs.TransactionRequestD
 import com.example.financetracker.model.entities.*;
 import com.example.financetracker.model.exceptions.BadRequestException;
 import com.example.financetracker.model.exceptions.NotFoundException;
-import com.example.financetracker.model.exceptions.UnauthorizedException;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
@@ -30,7 +28,7 @@ public class PlannedPaymentService extends AbstractService {
     public PlannedPaymentDTO createPlannedPayment(PlannedPaymentRequestDTO plannedPaymentRequestDTO, int loggedUserId) {
         User user = getUserById(loggedUserId);
         Account account = getAccountById(plannedPaymentRequestDTO.getAccountId());
-        checkAccountAccessRights(account, user);
+        checkUserAuthorization(account.getOwner().getId(), user.getId());
         Category category = getCategoryById(plannedPaymentRequestDTO.getCategoryId());
         checkSufficientFunds(account.getBalance(), plannedPaymentRequestDTO.getAmount());
         PlannedPayment plannedPayment = new PlannedPayment();
@@ -46,17 +44,30 @@ public class PlannedPaymentService extends AbstractService {
         return mapper.map(plannedPayment, PlannedPaymentDTO.class);
     }
 
-    public PlannedPaymentDTO getPlannedPaymentById(int id, int loggedUserId) {
+    @Transactional
+    public PlannedPaymentDTO editPlannedPaymentById(int id, PlannedPaymentRequestDTO plannedPaymentRequestDTO, int loggedUserId) {
         User user = getUserById(loggedUserId);
         PlannedPayment plannedPayment = getPlannedPaymentById(id);
-        checkAccountAccessRights(plannedPayment.getAccount(), user);
+        checkUserAuthorization(plannedPayment.getAccount().getOwner().getId(), user.getId());
+        Category category = getCategoryById(plannedPaymentRequestDTO.getCategoryId());
+        checkSufficientFunds(plannedPayment.getAccount().getBalance(), plannedPaymentRequestDTO.getAmount());
+        Account account = getAccountById(plannedPaymentRequestDTO.getAccountId());
+        plannedPayment.setAccount(account);
+        plannedPayment.setCategory(category);
+        plannedPayment.setDescription(plannedPaymentRequestDTO.getDescription());
+        plannedPayment.setAmount(plannedPaymentRequestDTO.getAmount());
+        plannedPayment.setDate(plannedPaymentRequestDTO.getDate());
+        plannedPayment.setFrequency(getFrequencyById(plannedPaymentRequestDTO.getFrequencyId()));
+        plannedPaymentRepository.save(plannedPayment);
+        logger.info("Updated planned payment: "+plannedPayment.getId()+"\n"+plannedPayment.toString());
+
         return mapper.map(plannedPayment, PlannedPaymentDTO.class);
     }
 
-    public PlannedPaymentDTO deletePlannedPaymentById(int plannedPaymentId, int loggedUserId) {
+    public PlannedPaymentDTO deletePlannedPaymentById(int id, int loggedUserId) {
         User user = getUserById(loggedUserId);
-        PlannedPayment plannedPayment = getPlannedPaymentById(plannedPaymentId);
-        checkAccountAccessRights(plannedPayment.getAccount(), user);
+        PlannedPayment plannedPayment = getPlannedPaymentById(id);
+        checkUserAuthorization(plannedPayment.getAccount().getOwner().getId(), user.getId());
         List<Transaction> transactions = transactionRepository.findAllByPlannedPayment(plannedPayment);
         if (!transactions.isEmpty()) {
             throw new BadRequestException("Cannot delete planned payment that has related transactions.");
@@ -67,14 +78,24 @@ public class PlannedPaymentService extends AbstractService {
         return mapper.map(plannedPayment, PlannedPaymentDTO.class);
     }
 
+    public PlannedPaymentDTO getPlannedPaymentById(int id, int loggedUserId) {
+        User user = getUserById(loggedUserId);
+        PlannedPayment plannedPayment = getPlannedPaymentById(id);
+        checkUserAuthorization(plannedPayment.getAccount().getOwner().getId(), user.getId());
+
+        return mapper.map(plannedPayment, PlannedPaymentDTO.class);
+    }
+
     public List<PlannedPaymentDTO> getAllPlannedPaymentsForAccount(int accountId, int loggedUserId) {
+        //TODO Implement pagination
         User user = getUserById(loggedUserId);
         Account account = getAccountById(accountId);
-        checkAccountAccessRights(account, user);
+        checkUserAuthorization(account.getOwner().getId(), user.getId());
         List<PlannedPayment> plannedPayments = plannedPaymentRepository.findAllByAccount(account);
         if (plannedPayments.isEmpty()) {
             throw new NotFoundException("Planned payments not found");
         }
+
         return plannedPayments.stream()
                 .map(plannedPayment -> mapper.map(plannedPayment, PlannedPaymentDTO.class))
                 .collect(Collectors.toList());
@@ -82,34 +103,16 @@ public class PlannedPaymentService extends AbstractService {
 
     @Transactional
     public List<TransactionDTOWithoutPlannedPayments> getAllTransactionsForPlannedPayment(int plannedPaymentId, int loggedUserId) {
+        //TODO Implement pagination
         User user = getUserById(loggedUserId);
         PlannedPayment plannedPayment = getPlannedPaymentById(plannedPaymentId);
-        checkAccountAccessRights(plannedPayment.getAccount(), user);
+        checkUserAuthorization(plannedPayment.getAccount().getOwner().getId(), user.getId());
         List<Transaction> transactions = transactionRepository.findAllByPlannedPayment(plannedPayment);
-        if (transactions.isEmpty()) {
-            throw new NotFoundException("Transactions not found");
-        }
+        checkIfTransactionsExist(transactions);
+
         return transactions.stream()
                 .map(transaction -> mapper.map(transaction, TransactionDTOWithoutPlannedPayments.class))
                 .collect(Collectors.toList());
-    }
-
-    @Transactional
-    public PlannedPaymentDTO editPlannedPaymentById(int plannedPaymentId, PlannedPaymentRequestDTO plannedPaymentRequestDTO, int loggedUserId) {
-        User user = getUserById(loggedUserId);
-        PlannedPayment plannedPayment = getPlannedPaymentById(plannedPaymentId);
-        checkAccountAccessRights(plannedPayment.getAccount(), user);
-        Category category = getCategoryById(plannedPaymentRequestDTO.getCategoryId());
-        checkSufficientFunds(plannedPayment.getAccount().getBalance(), plannedPaymentRequestDTO.getAmount());
-        plannedPayment.setCategory(category);
-        plannedPayment.setDescription(plannedPaymentRequestDTO.getDescription());
-        plannedPayment.setAmount(plannedPaymentRequestDTO.getAmount());
-        plannedPayment.setDate(plannedPaymentRequestDTO.getDate());
-        plannedPayment.setFrequency(getFrequencyById(plannedPaymentRequestDTO.getFrequencyId()));
-        plannedPaymentRepository.save(plannedPayment);
-        logger.info("Updated planned payment: "+plannedPayment.getId()+"\n"+plannedPayment.toString());
-
-        return mapper.map(plannedPayment, PlannedPaymentDTO.class);
     }
 
     @Transactional
@@ -125,9 +128,9 @@ public class PlannedPaymentService extends AbstractService {
             transactionRequestDTO.setDescription(plannedPayment.getDescription());
             transactionRequestDTO.setCategoryId(plannedPayment.getCategory().getId());
             transactionRequestDTO.setPlannedPaymentId(plannedPayment.getId());
+            transactionRequestDTO.setCurrencyId(plannedPayment.getAccount().getCurrency().getId());
             transactionService.createTransaction(transactionRequestDTO, plannedPayment.getAccount().getOwner().getId());
 
-            //TODO for refactoring 
             Frequency frequency = plannedPayment.getFrequency();
             LocalDateTime nextPaymentDate = plannedPayment.getDate().plusDays(1);
             switch (frequency.getFrequencyType()) {
@@ -146,13 +149,8 @@ public class PlannedPaymentService extends AbstractService {
             }
             plannedPayment.setDate(nextPaymentDate);
         }
+
         plannedPaymentRepository.saveAll(plannedPayments);
-    }
 
-    private void checkAccountAccessRights(Account account, User user) {
-        if (!account.getOwner().equals(user)) {
-            throw new UnauthorizedException("Unauthorized access. The service cannot be executed.");
-        }
     }
-
 }

@@ -13,16 +13,17 @@ import java.util.concurrent.CopyOnWriteArrayList;
 public class SessionCollector implements HttpSessionListener {
     private final CopyOnWriteArrayList<HttpSession> sessions = new CopyOnWriteArrayList<>();
     @Override
-    public void sessionCreated(HttpSessionEvent se) {
-        sessions.add(se.getSession());
-        HttpSessionListener.super.sessionCreated(se);
+    public void sessionCreated(HttpSessionEvent s) {
+        sessions.add(s.getSession());
+        HttpSessionListener.super.sessionCreated(s);
     }
     @Override
-    public void sessionDestroyed(HttpSessionEvent se) {
-        sessions.remove(se.getSession());
-        HttpSessionListener.super.sessionDestroyed(se);
+    public void sessionDestroyed(HttpSessionEvent s) {
+        sessions.remove(s.getSession());
+        HttpSessionListener.super.sessionDestroyed(s);
     }
     public List<HttpSession> getAllSessions() {
+
         return new ArrayList<>(sessions);
     }
 }
