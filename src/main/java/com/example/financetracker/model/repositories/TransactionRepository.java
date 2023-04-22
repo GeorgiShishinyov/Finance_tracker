@@ -21,4 +21,6 @@ public interface TransactionRepository extends JpaRepository<Transaction, Intege
     List<Transaction> findAllByPlannedPayment(PlannedPayment plannedPayment);
 
     List<Transaction> findByAccountAndDateBetween(Account account, LocalDateTime startDate, LocalDateTime endDate);
+
+    List<Transaction> findAllByCategoryIdAndAccount_OwnerIdAndDateAfterAndDateBefore(int categoryId, int ownerId, LocalDateTime start, LocalDateTime end);
 }

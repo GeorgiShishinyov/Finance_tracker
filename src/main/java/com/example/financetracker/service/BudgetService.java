@@ -6,6 +6,7 @@ import com.example.financetracker.model.DTOs.AccountDTOs.AccountWithOwnerDTO;
 import com.example.financetracker.model.entities.Budget;
 import com.example.financetracker.model.entities.Category;
 import com.example.financetracker.model.entities.Currency;
+import com.example.financetracker.model.entities.Transaction;
 import com.example.financetracker.model.exceptions.BadRequestException;
 import com.example.financetracker.model.exceptions.NotFoundException;
 import com.example.financetracker.model.exceptions.UnauthorizedException;
@@ -112,8 +113,6 @@ public class BudgetService extends AbstractService{
     }
 
     public BudgetWithTransactionsDTO getById(int id, int userId) {
-        //TODO for refactoring
-        /*
         Optional<Budget> budgetOptional = budgetRepository.findById(id);
         if(!budgetOptional.isPresent()){
             throw new NotFoundException("No such budget");
@@ -123,14 +122,10 @@ public class BudgetService extends AbstractService{
             throw new UnauthorizedException("You can't see foreign budget!");
         }
         List<TransactionDTO> transactionOnUser = new ArrayList<>();
-        List<TransactionDTO> transactions = transactionService.getAllTransactionsForUser(budget.getOwner().getId(), userId);
-        for(TransactionDTO transactionDTO : transactions){
-            AccountWithOwnerDTO account = accountService.getById(transactionDTO.getAccount().getId(), userId);
-            if(account.getOwner().getId() == userId && transactionDTO.getDate().isAfter(budget.getStartDate()) &&
-                    transactionDTO.getDate().isBefore(budget.getEndDate()) &&
-                    budget.getCategory().getId() == transactionDTO.getCategory().getId()){
-                transactionOnUser.add(transactionDTO);
-            }
+        List<Transaction> transactions = transactionRepository.findAllByCategoryIdAndAccount_OwnerIdAndDateAfterAndDateBefore(
+                budget.getOwner().getId(), budget.getCategory().getId(), budget.getStartDate(), budget.getEndDate());
+        for(Transaction transaction : transactions){
+            transactionOnUser.add(mapper.map(transaction, TransactionDTO.class));
         }
         BudgetWithTransactionsDTO budgetWithTransactionsDTO = new BudgetWithTransactionsDTO();
         budgetWithTransactionsDTO.setTransactions(transactionOnUser);
@@ -143,8 +138,5 @@ public class BudgetService extends AbstractService{
         budgetWithTransactionsDTO.setCategoryId(budget.getCategory().getId());
 
         return budgetWithTransactionsDTO;
-
-         */
-        return null; //TODO - remove return null after refactoring
     }
 }
