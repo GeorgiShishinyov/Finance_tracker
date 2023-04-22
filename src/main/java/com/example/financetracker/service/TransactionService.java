@@ -138,33 +138,28 @@ public class TransactionService extends AbstractService {
         return transactions.map(transaction -> createTransactionDTO(transaction.getCurrency(), transaction));
     }
 
-    @Transactional
-    public List<TransactionDTO> getAllTransactionsForAccount(int accountId, int loggedUserId) {
-        //TODO Implement pagination
+    public Page<TransactionDTO> getAllTransactionsForAccount(int accountId, int loggedUserId, Pageable pageable) {
         User user = getUserById(loggedUserId);
         Account account = getAccountById(accountId);
         checkUserAuthorization(account.getOwner().getId(), user.getId());
-        List<Transaction> transactions = transactionRepository.findAllByAccount(account);
+        Page<Transaction> transactions = transactionRepository.findAllByAccount(account, pageable);
         checkIfTransactionsExist(transactions);
 
-        return transactions.stream()
-                .map(transaction -> createTransactionDTO(transaction.getCurrency(), transaction))
-                .collect(Collectors.toList());
+        return transactions.map(transaction -> createTransactionDTO(transaction.getCurrency(), transaction));
     }
 
-    public List<TransactionDTO> getFilteredTransactions(LocalDateTime startDate, LocalDateTime endDate, Integer categoryId, Integer accountId, int loggedUserId) {
-        //TODO Implement pagination
+    public Page<TransactionDTO> getFilteredTransactions(LocalDateTime startDate, LocalDateTime endDate,
+                                                        Integer categoryId, Integer accountId,
+                                                        int loggedUserId, Pageable pageable) {
         User user = getUserById(loggedUserId);
         Account account = getAccountById(accountId);
         checkUserAuthorization(account.getOwner().getId(), user.getId());
-        Category category = getCategoryById(categoryId);
+        Category category = categoryId != null ? getCategoryById(categoryId) : null;
         dateValidation(startDate, endDate);
-        List<Transaction> transactions = transactionRepository.findByDateBetweenAndCategoryAndAccount(startDate, endDate, category, account);
+        Page<Transaction> transactions = transactionRepository.findByDateBetweenAndCategoryAndAccount(startDate, endDate, category, account, pageable);
         checkIfTransactionsExist(transactions);
 
-        return transactions.stream()
-                .map(transaction -> createTransactionDTO(transaction.getCurrency(), transaction))
-                .collect(Collectors.toList());
+        return transactions.map(transaction -> createTransactionDTO(transaction.getCurrency(), transaction));
     }
 
     private void dateValidation(LocalDateTime startDate, LocalDateTime endDate) {

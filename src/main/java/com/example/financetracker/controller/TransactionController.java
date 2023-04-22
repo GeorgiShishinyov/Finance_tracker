@@ -56,18 +56,27 @@ public class TransactionController extends AbstractController {
     }
 
     @GetMapping("/accounts/{id}/transactions")
-    public List<TransactionDTO> getAllTransactionsForAccount(@PathVariable int id, HttpSession s) {
-        return transactionService.getAllTransactionsForAccount(id, getLoggedUserId(s));
+    public Page<TransactionDTO> getAllTransactionsForAccount(@PathVariable int id,
+                                                             HttpSession s,
+                                                             @RequestParam(defaultValue = "0") int page,
+                                                             @RequestParam(defaultValue = "10") int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        return transactionService.getAllTransactionsForAccount(id, getLoggedUserId(s), pageable);
     }
 
     @GetMapping("/transactions/filter")
-    public List<TransactionDTO> getFilteredTransactions(@RequestParam(name = "start-date")
+    public Page<TransactionDTO> getFilteredTransactions(@RequestParam(name = "start-date")
                                                         @org.springframework.format.annotation.DateTimeFormat(pattern = "yyyy-MM-dd")
                                                         LocalDateTime startDate, @RequestParam(name = "end-date")
                                                         @org.springframework.format.annotation.DateTimeFormat(pattern = "yyyy-MM-dd")
                                                         LocalDateTime endDate, @RequestParam(name = "category-id") Integer categoryId,
-                                                        @RequestParam(name = "account-id") Integer accountId, HttpSession s) {
-        return transactionService.getFilteredTransactions(startDate, endDate, categoryId, accountId, getLoggedUserId(s));
+                                                        @RequestParam(name = "account-id") Integer accountId,
+                                                        HttpSession s,
+                                                        @RequestParam(defaultValue = "0") int page,
+                                                        @RequestParam(defaultValue = "10") int size) {
+        Pageable pageable = PageRequest.of(page, size);
+
+        return transactionService.getFilteredTransactions(startDate, endDate, categoryId, accountId, getLoggedUserId(s), pageable);
     }
 
     @InitBinder
