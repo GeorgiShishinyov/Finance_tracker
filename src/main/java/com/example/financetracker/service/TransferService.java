@@ -13,12 +13,11 @@ import com.example.financetracker.model.exceptions.UnauthorizedException;
 import com.example.financetracker.model.repositories.TransferRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
-
+import org.springframework.data.domain.Pageable;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 public class TransferService extends AbstractService {
@@ -67,15 +66,12 @@ public class TransferService extends AbstractService {
         return mapper.map(transfer, TransferDTO.class);
     }
 
-    public List<TransferDTO> getAllTransfersForUser(int loggedUserId) {
-        //TODO Implement pagination
-        List<Transfer> transfers = transferRepository.findByAccountSender_Owner_Id(loggedUserId);
+    public Page<TransferDTO> getAllTransfersForUser(int loggedUserId, Pageable pageable) {
+        Page<Transfer> transfers = transferRepository.findAllByAccountSender_Owner_Id(loggedUserId, pageable);
         if (transfers.isEmpty()) {
             throw new NotFoundException("No transfers found for the user.");
         }
-        List<TransferDTO> transferDTOs = transfers.stream()
-                .map(transfer -> mapper.map(transfer, TransferDTO.class))
-                .collect(Collectors.toList());
+        Page<TransferDTO> transferDTOs = transfers.map(transfer -> mapper.map(transfer, TransferDTO.class));
 
         return transferDTOs;
     }

@@ -1,13 +1,13 @@
 package com.example.financetracker.model.repositories;
 
 import com.example.financetracker.model.entities.Transfer;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
-
 import java.util.List;
 
 public interface TransferRepository extends JpaRepository<Transfer, Integer> {
 
-    List<Transfer> findByAccountSender_Owner_Id(int senderId);
+    Page<Transfer> findAllByAccountSender_Owner_Id(int ownerId, Pageable pageable);
 
-    List<Transfer> findByAccountReceiver_Owner_Id(int receiverId);
 }
