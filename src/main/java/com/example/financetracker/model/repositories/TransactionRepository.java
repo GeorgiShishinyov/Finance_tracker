@@ -14,9 +14,10 @@ public interface TransactionRepository extends JpaRepository<Transaction, Intege
 
     Page<Transaction> findAllByAccount_Owner(User user, Pageable pageable);
 
-    List<Transaction> findAllByAccount(Account account);
+    Page<Transaction> findAllByAccount(Account account, Pageable pageable);
 
-    List<Transaction> findByDateBetweenAndCategoryAndAccount(LocalDateTime startDate, LocalDateTime endDate, Category category, Account account);
+    Page<Transaction> findByDateBetweenAndCategoryAndAccount(LocalDateTime startDate, LocalDateTime endDate,
+                                                             Category category, Account account, Pageable pageable);
 
     List<Transaction> findAllByPlannedPayment(PlannedPayment plannedPayment);
 
