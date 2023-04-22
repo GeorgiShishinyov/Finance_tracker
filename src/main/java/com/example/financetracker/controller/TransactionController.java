@@ -7,6 +7,9 @@ import com.example.financetracker.service.TransactionService;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.format.datetime.standard.DateTimeFormatterRegistrar;
 import org.springframework.format.support.FormattingConversionService;
 import org.springframework.web.bind.WebDataBinder;
@@ -43,8 +46,13 @@ public class TransactionController extends AbstractController {
     }
 
     @GetMapping("/users/{id}/transactions")
-    public List<TransactionDTO> getAllTransactionsForUser(@PathVariable int id, HttpSession s) {
-        return transactionService.getAllTransactionsForUser(id, getLoggedUserId(s));
+    public Page<TransactionDTO> getAllTransactionsForUser(@PathVariable int id,
+                                                          HttpSession s,
+                                                          @RequestParam(defaultValue = "0") int page,
+                                                          @RequestParam(defaultValue = "10") int size) {
+        Pageable pageable = PageRequest.of(page, size);
+
+        return transactionService.getAllTransactionsForUser(id, getLoggedUserId(s), pageable);
     }
 
     @GetMapping("/accounts/{id}/transactions")

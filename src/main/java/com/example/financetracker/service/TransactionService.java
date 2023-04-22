@@ -7,10 +7,13 @@ import com.example.financetracker.model.DTOs.TransactionDTOs.TransactionEditRequ
 import com.example.financetracker.model.DTOs.TransactionDTOs.TransactionRequestDTO;
 import com.example.financetracker.model.entities.*;
 import com.example.financetracker.model.exceptions.BadRequestException;
+import com.example.financetracker.model.exceptions.NotFoundException;
 import com.example.financetracker.model.repositories.BudgetRepository;
 import com.example.financetracker.model.repositories.TransactionRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -126,16 +129,13 @@ public class TransactionService extends AbstractService {
     }
 
     @Transactional
-    public List<TransactionDTO> getAllTransactionsForUser(int userId, int loggedUserId) {
-        //TODO Implement pagination
+    public Page<TransactionDTO> getAllTransactionsForUser(int userId, int loggedUserId, Pageable pageable) {
         checkUserAuthorization(userId, loggedUserId);
         User user = getUserById(userId);
-        List<Transaction> transactions = transactionRepository.findAllByAccount_Owner(user);
+        Page<Transaction> transactions = transactionRepository.findAllByAccount_Owner(user, pageable);
         checkIfTransactionsExist(transactions);
 
-        return transactions.stream()
-                .map(transaction -> createTransactionDTO(transaction.getCurrency(), transaction))
-                .collect(Collectors.toList());
+        return transactions.map(transaction -> createTransactionDTO(transaction.getCurrency(), transaction));
     }
 
     @Transactional

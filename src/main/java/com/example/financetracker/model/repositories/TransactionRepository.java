@@ -1,6 +1,8 @@
 package com.example.financetracker.model.repositories;
 
 import com.example.financetracker.model.entities.*;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.math.BigDecimal;
@@ -10,7 +12,7 @@ import java.util.Optional;
 
 public interface TransactionRepository extends JpaRepository<Transaction, Integer> {
 
-    List<Transaction> findAllByAccount_Owner(User user);
+    Page<Transaction> findAllByAccount_Owner(User user, Pageable pageable);
 
     List<Transaction> findAllByAccount(Account account);
 

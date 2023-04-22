@@ -8,6 +8,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -91,6 +92,13 @@ public abstract class AbstractService {
     }
 
     protected void checkIfTransactionsExist(List<Transaction> transactions) {
+        //TODO remove
+        if (transactions.isEmpty()) {
+            throw new NotFoundException("Transactions not found");
+        }
+    }
+
+    protected void checkIfTransactionsExist(Page<Transaction> transactions) {
         if (transactions.isEmpty()) {
             throw new NotFoundException("Transactions not found");
         }

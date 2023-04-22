@@ -112,6 +112,8 @@ public class BudgetService extends AbstractService{
     }
 
     public BudgetWithTransactionsDTO getById(int id, int userId) {
+        //TODO for refactoring
+        /*
         Optional<Budget> budgetOptional = budgetRepository.findById(id);
         if(!budgetOptional.isPresent()){
             throw new NotFoundException("No such budget");
@@ -141,5 +143,8 @@ public class BudgetService extends AbstractService{
         budgetWithTransactionsDTO.setCategoryId(budget.getCategory().getId());
 
         return budgetWithTransactionsDTO;
+
+         */
+        return null; //TODO - remove return null after refactoring
     }
 }
