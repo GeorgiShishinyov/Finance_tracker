@@ -69,29 +69,37 @@ public class AccountController extends AbstractController {
                                                                     @RequestParam(name = "end-date")
                                                                     @org.springframework.format.annotation.DateTimeFormat(pattern = "yyyy-MM-dd")
                                                                     LocalDateTime endDate,
-                                                                    HttpSession session) {
+                                                                    HttpSession s) {
 
-        int userId = getLoggedUserId(session);
+        int userId = getLoggedUserId(s);
         ByteArrayOutputStream outputStream = null;
         String fileName = null;
+        ByteArrayResource resource = null;
+        HttpHeaders headers = new HttpHeaders();
 
         if ("pdf".equalsIgnoreCase(format)) {
             outputStream = accountService.generateAccountStatementPdf(id, startDate, endDate, userId);
             fileName = "statement.pdf";
+            headers.setContentType(MediaType.APPLICATION_PDF);
         } else if ("xlsx".equalsIgnoreCase(format)) {
             outputStream = accountService.generateAccountStatementExcel(id, startDate, endDate, userId);
             fileName = "statement.xlsx";
+            headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
+        } else if ("json".equalsIgnoreCase(format)) {
+            outputStream = accountService.generateAccountStatementJson(id, startDate, endDate, userId);
+            fileName = "statement.json";
+            headers.setContentType(MediaType.APPLICATION_JSON);
         } else {
             throw new BadRequestException("Unsupported format: " + format);
         }
 
-        ByteArrayResource resource = new ByteArrayResource(outputStream.toByteArray());
-        HttpHeaders headers = new HttpHeaders();
+        resource = new ByteArrayResource(outputStream.toByteArray());
+        headers = new HttpHeaders();
         headers.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + fileName);
         return ResponseEntity.ok()
                 .headers(headers)
                 .contentLength(resource.contentLength())
-                .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                .contentType(headers.getContentType())
                 .body(resource);
     }
 }

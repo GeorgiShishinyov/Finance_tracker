@@ -8,12 +8,15 @@ import com.example.financetracker.model.DTOs.AccountDTOs.CreateAccountDTO;
 import com.example.financetracker.model.DTOs.AccountDTOs.EditAccountDTO;
 import com.example.financetracker.model.entities.Account;
 import com.example.financetracker.model.entities.Currency;
+import com.example.financetracker.model.entities.Transaction;
 import com.example.financetracker.model.entities.User;
 import com.example.financetracker.model.exceptions.BadRequestException;
 import com.example.financetracker.model.exceptions.NotFoundException;
-import com.example.financetracker.model.exceptions.UnauthorizedException;
 import com.example.financetracker.model.repositories.AccountRepository;
 import com.example.financetracker.model.repositories.CurrencyRepository;
+import com.fatboyindustrial.gsonjavatime.Converters;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import lombok.SneakyThrows;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -120,9 +123,8 @@ public class AccountService extends AbstractService {
     public ByteArrayOutputStream generateAccountStatementPdf(int id, LocalDateTime startDate, LocalDateTime endDate, int loggedUserId) {
         Account account = getAccountById(id);
         User user = getUserById(loggedUserId);
-        if (!account.getOwner().equals(user)) {
-            throw new UnauthorizedException("Unauthorized access. The service cannot be executed.");
-        }
+        checkUserAuthorization(account.getOwner().getId(), user.getId());
+
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         return outputStream = accountStatementPdfGenerator.generatePdf(account, startDate, endDate, outputStream);
     }
@@ -131,10 +133,30 @@ public class AccountService extends AbstractService {
     public ByteArrayOutputStream generateAccountStatementExcel(int id, LocalDateTime startDate, LocalDateTime endDate, int loggedUserId) {
         Account account = getAccountById(id);
         User user = getUserById(loggedUserId);
-        if (!account.getOwner().equals(user)) {
-            throw new UnauthorizedException("Unauthorized access. The service cannot be executed.");
-        }
+        checkUserAuthorization(account.getOwner().getId(), user.getId());
+
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         return outputStream = accountStatementExcelGenerator.generateExcel(account, startDate, endDate, outputStream);
+    }
+
+    @SneakyThrows
+    public ByteArrayOutputStream generateAccountStatementJson(int id, LocalDateTime startDate, LocalDateTime endDate, int loggedUserId) {
+        Account account = getAccountById(id);
+        User user = getUserById(loggedUserId);
+        checkUserAuthorization(account.getOwner().getId(), user.getId());
+
+        List<Transaction> transactions = transactionRepository.findAllByAccount_IdAndDateBetween(id, startDate, endDate);
+        checkIfTransactionsExist(transactions);
+
+        GsonBuilder gsonBuilder = new GsonBuilder();
+        Converters.registerLocalDateTime(gsonBuilder); // Added the LocalDateTime converter
+        gsonBuilder.excludeFieldsWithoutExposeAnnotation();
+        Gson gson = gsonBuilder.create();
+        String json = gson.toJson(transactions);
+
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        outputStream.write(json.getBytes());
+
+        return outputStream;
     }
 }

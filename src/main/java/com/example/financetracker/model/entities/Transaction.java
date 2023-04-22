@@ -1,5 +1,6 @@
 package com.example.financetracker.model.entities;
 
+import com.google.gson.annotations.Expose;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -20,18 +21,23 @@ public class Transaction {
     @JoinColumn(name = "account_id")
     private Account account;
 
+    @Expose
     @Column(name = "description")
     private String description;
 
+    @Expose
     @Column(name = "date")
     private LocalDateTime date;
 
+    @Expose
     @Column(name = "amount")
     private BigDecimal amount;
 
     @ManyToOne
     @JoinColumn(name = "currency_id")
     private Currency currency;
+
+    @Expose
     @ManyToOne
     @JoinColumn(name = "category_id")
     private Category category;
