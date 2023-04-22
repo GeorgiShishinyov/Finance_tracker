@@ -1,6 +1,6 @@
 package com.example.financetracker.model.DTOs.PlannedPaymentDTOs;
 
-import com.example.financetracker.model.DTOs.АccountDTOs.AccountWithoutOwnerDTO;
+import com.example.financetracker.model.DTOs.AccountDTOs.AccountWithoutOwnerDTO;
 import com.example.financetracker.model.entities.Frequency;
 import lombok.AllArgsConstructor;
 import lombok.Getter;

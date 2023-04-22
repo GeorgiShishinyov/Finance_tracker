@@ -1,4 +1,4 @@
-package com.example.financetracker.model.DTOs.АccountDTOs;
+package com.example.financetracker.model.DTOs.AccountDTOs;
 
 import com.example.financetracker.model.DTOs.UserDTOs.UserFullInfoDTO;
 import lombok.AllArgsConstructor;

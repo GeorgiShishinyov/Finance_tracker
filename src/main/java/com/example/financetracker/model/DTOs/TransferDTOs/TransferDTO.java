@@ -1,6 +1,6 @@
 package com.example.financetracker.model.DTOs.TransferDTOs;
 
-import com.example.financetracker.model.DTOs.АccountDTOs.AccountWithoutOwnerDTO;
+import com.example.financetracker.model.DTOs.AccountDTOs.AccountWithoutOwnerDTO;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

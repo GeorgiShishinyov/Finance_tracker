@@ -1,13 +1,14 @@
 package com.example.financetracker.controller;
 
-import com.example.financetracker.model.DTOs.АccountDTOs.AccountWithOwnerDTO;
-import com.example.financetracker.model.DTOs.АccountDTOs.AccountWithoutOwnerDTO;
-import com.example.financetracker.model.DTOs.АccountDTOs.CreateAccountDTO;
-import com.example.financetracker.model.DTOs.АccountDTOs.EditAccountDTO;
+import com.example.financetracker.model.DTOs.AccountDTOs.AccountWithOwnerDTO;
+import com.example.financetracker.model.DTOs.AccountDTOs.AccountWithoutOwnerDTO;
+import com.example.financetracker.model.DTOs.AccountDTOs.CreateAccountDTO;
+import com.example.financetracker.model.DTOs.AccountDTOs.EditAccountDTO;
 import com.example.financetracker.model.exceptions.BadRequestException;
 import com.example.financetracker.model.exceptions.UnauthorizedException;
 import com.example.financetracker.service.AccountService;
 import jakarta.servlet.http.HttpSession;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.HttpHeaders;
@@ -26,13 +27,13 @@ public class AccountController extends AbstractController {
     private AccountService accountService;
 
     @PostMapping("/accounts")
-    public AccountWithOwnerDTO create(@RequestBody CreateAccountDTO dto, HttpSession s) {
+    public AccountWithOwnerDTO create(@Valid @RequestBody CreateAccountDTO dto, HttpSession s) {
         int id = getLoggedUserId(s);
         return accountService.create(dto, id);
     }
 
     @PutMapping("/accounts/{id}")
-    public AccountWithoutOwnerDTO edit(@PathVariable int id, @RequestBody EditAccountDTO dto, HttpSession s) {
+    public AccountWithoutOwnerDTO edit(@Valid @PathVariable int id, @RequestBody EditAccountDTO dto, HttpSession s) {
         int userId = getLoggedUserId(s);
         return accountService.edit(id, dto, userId);
     }

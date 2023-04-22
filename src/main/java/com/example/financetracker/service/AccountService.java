@@ -2,10 +2,10 @@ package com.example.financetracker.service;
 
 import com.example.financetracker.AccountStatementExcelGenerator;
 import com.example.financetracker.AccountStatementPdfGenerator;
-import com.example.financetracker.model.DTOs.АccountDTOs.AccountWithOwnerDTO;
-import com.example.financetracker.model.DTOs.АccountDTOs.AccountWithoutOwnerDTO;
-import com.example.financetracker.model.DTOs.АccountDTOs.CreateAccountDTO;
-import com.example.financetracker.model.DTOs.АccountDTOs.EditAccountDTO;
+import com.example.financetracker.model.DTOs.AccountDTOs.AccountWithOwnerDTO;
+import com.example.financetracker.model.DTOs.AccountDTOs.AccountWithoutOwnerDTO;
+import com.example.financetracker.model.DTOs.AccountDTOs.CreateAccountDTO;
+import com.example.financetracker.model.DTOs.AccountDTOs.EditAccountDTO;
 import com.example.financetracker.model.entities.Account;
 import com.example.financetracker.model.entities.Currency;
 import com.example.financetracker.model.entities.User;
@@ -85,7 +85,7 @@ public class AccountService extends AbstractService {
 
     private void validateAccountData(Account account) {
         if (account.getBalance().compareTo(BigDecimal.ZERO) < 0) {
-            throw new BadRequestException("You cannot update your account balance with a negative or zero number value.");
+            throw new BadRequestException("You can not update your account balance with a negative or zero number value.");
         }
         if (account.getCurrency() == null) {
             throw new BadRequestException("Please choose any currency for your account!");

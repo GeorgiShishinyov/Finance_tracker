@@ -2,10 +2,10 @@ package com.example.financetracker;
 
 import com.example.financetracker.controller.AccountController;
 import com.example.financetracker.model.DTOs.CurrencyDTOs.CurrencyDTO;
-import com.example.financetracker.model.DTOs.АccountDTOs.AccountWithOwnerDTO;
-import com.example.financetracker.model.DTOs.АccountDTOs.AccountWithoutOwnerDTO;
-import com.example.financetracker.model.DTOs.АccountDTOs.CreateAccountDTO;
-import com.example.financetracker.model.DTOs.АccountDTOs.EditAccountDTO;
+import com.example.financetracker.model.DTOs.AccountDTOs.AccountWithOwnerDTO;
+import com.example.financetracker.model.DTOs.AccountDTOs.AccountWithoutOwnerDTO;
+import com.example.financetracker.model.DTOs.AccountDTOs.CreateAccountDTO;
+import com.example.financetracker.model.DTOs.AccountDTOs.EditAccountDTO;
 import com.example.financetracker.model.entities.Account;
 import com.example.financetracker.model.entities.Currency;
 import com.example.financetracker.model.entities.User;

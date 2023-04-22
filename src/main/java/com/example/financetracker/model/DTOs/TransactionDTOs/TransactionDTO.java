@@ -2,7 +2,7 @@ package com.example.financetracker.model.DTOs.TransactionDTOs;
 
 import com.example.financetracker.model.DTOs.CurrencyDTOs.CurrencyDTO;
 import com.example.financetracker.model.DTOs.PlannedPaymentDTOs.PlannedPaymentSimpleDTO;
-import com.example.financetracker.model.DTOs.АccountDTOs.AccountWithoutOwnerDTO;
+import com.example.financetracker.model.DTOs.AccountDTOs.AccountWithoutOwnerDTO;
 import com.example.financetracker.model.entities.Category;
 import lombok.AllArgsConstructor;
 import lombok.Getter;

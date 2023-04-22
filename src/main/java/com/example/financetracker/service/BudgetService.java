@@ -2,7 +2,7 @@ package com.example.financetracker.service;
 
 import com.example.financetracker.model.DTOs.BudgetDTOs.*;
 import com.example.financetracker.model.DTOs.TransactionDTOs.TransactionDTO;
-import com.example.financetracker.model.DTOs.АccountDTOs.AccountWithOwnerDTO;
+import com.example.financetracker.model.DTOs.AccountDTOs.AccountWithOwnerDTO;
 import com.example.financetracker.model.entities.Budget;
 import com.example.financetracker.model.entities.Category;
 import com.example.financetracker.model.entities.Currency;
