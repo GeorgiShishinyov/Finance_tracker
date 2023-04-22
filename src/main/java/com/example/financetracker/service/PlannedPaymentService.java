@@ -9,6 +9,8 @@ import com.example.financetracker.model.exceptions.BadRequestException;
 import com.example.financetracker.model.exceptions.NotFoundException;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -16,7 +18,6 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @EnableScheduling
 @Service
@@ -86,33 +87,24 @@ public class PlannedPaymentService extends AbstractService {
         return mapper.map(plannedPayment, PlannedPaymentDTO.class);
     }
 
-    public List<PlannedPaymentDTO> getAllPlannedPaymentsForAccount(int accountId, int loggedUserId) {
-        //TODO Implement pagination
+    public Page<PlannedPaymentDTO> getAllPlannedPaymentsForAccount(int accountId, int loggedUserId, Pageable pageable) {
         User user = getUserById(loggedUserId);
         Account account = getAccountById(accountId);
         checkUserAuthorization(account.getOwner().getId(), user.getId());
-        List<PlannedPayment> plannedPayments = plannedPaymentRepository.findAllByAccount(account);
-        if (plannedPayments.isEmpty()) {
-            throw new NotFoundException("Planned payments not found");
-        }
+        Page<PlannedPayment> plannedPayments = plannedPaymentRepository.findAllByAccount(account, pageable);
+        checkIfPlannedPaymentsExist(plannedPayments);
 
-        return plannedPayments.stream()
-                .map(plannedPayment -> mapper.map(plannedPayment, PlannedPaymentDTO.class))
-                .collect(Collectors.toList());
+        return plannedPayments.map(plannedPayment -> mapper.map(plannedPayment, PlannedPaymentDTO.class));
     }
 
-    @Transactional
-    public List<TransactionDTOWithoutPlannedPayments> getAllTransactionsForPlannedPayment(int plannedPaymentId, int loggedUserId) {
-        //TODO Implement pagination
+    public Page<TransactionDTOWithoutPlannedPayments> getAllTransactionsForPlannedPayment(int plannedPaymentId, int loggedUserId, Pageable pageable) {
         User user = getUserById(loggedUserId);
         PlannedPayment plannedPayment = getPlannedPaymentById(plannedPaymentId);
         checkUserAuthorization(plannedPayment.getAccount().getOwner().getId(), user.getId());
-        List<Transaction> transactions = transactionRepository.findAllByPlannedPayment(plannedPayment);
+        Page<Transaction> transactions = transactionRepository.findAllByPlannedPayment(plannedPayment, pageable);
         checkIfTransactionsExist(transactions);
 
-        return transactions.stream()
-                .map(transaction -> mapper.map(transaction, TransactionDTOWithoutPlannedPayments.class))
-                .collect(Collectors.toList());
+        return transactions.map(transaction -> mapper.map(transaction, TransactionDTOWithoutPlannedPayments.class));
     }
 
     @Transactional
@@ -152,5 +144,11 @@ public class PlannedPaymentService extends AbstractService {
 
         plannedPaymentRepository.saveAll(plannedPayments);
 
+    }
+
+    private void checkIfPlannedPaymentsExist(Page<PlannedPayment> plannedPayments){
+        if (plannedPayments.isEmpty()) {
+            throw new NotFoundException("Planned payments not found");
+        }
     }
 }

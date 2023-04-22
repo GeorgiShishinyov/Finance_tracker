@@ -7,7 +7,6 @@ import com.example.financetracker.model.DTOs.TransactionDTOs.TransactionEditRequ
 import com.example.financetracker.model.DTOs.TransactionDTOs.TransactionRequestDTO;
 import com.example.financetracker.model.entities.*;
 import com.example.financetracker.model.exceptions.BadRequestException;
-import com.example.financetracker.model.exceptions.NotFoundException;
 import com.example.financetracker.model.repositories.BudgetRepository;
 import com.example.financetracker.model.repositories.TransactionRepository;
 import jakarta.transaction.Transactional;
@@ -19,7 +18,6 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 public class TransactionService extends AbstractService {

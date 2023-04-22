@@ -5,10 +5,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 
 public interface TransactionRepository extends JpaRepository<Transaction, Integer> {
 
@@ -20,6 +18,8 @@ public interface TransactionRepository extends JpaRepository<Transaction, Intege
                                                              Category category, Account account, Pageable pageable);
 
     List<Transaction> findAllByPlannedPayment(PlannedPayment plannedPayment);
+
+    Page<Transaction> findAllByPlannedPayment(PlannedPayment plannedPayment, Pageable pageable);
 
     List<Transaction> findByAccountAndDateBetween(Account account, LocalDateTime startDate, LocalDateTime endDate);
 

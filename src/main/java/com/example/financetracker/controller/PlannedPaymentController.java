@@ -7,6 +7,9 @@ import com.example.financetracker.service.PlannedPaymentService;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -22,6 +25,11 @@ public class PlannedPaymentController extends AbstractController{
         return plannedPaymentService.createPlannedPayment(plannedPaymentRequestDTO, getLoggedUserId(s));
     }
 
+    @PutMapping("/planned-payments/{id}")
+    public PlannedPaymentDTO editPlannedPaymentById(@PathVariable int id, @RequestBody PlannedPaymentRequestDTO plannedPaymentRequestDTO, HttpSession s) {
+        return plannedPaymentService.editPlannedPaymentById(id, plannedPaymentRequestDTO, getLoggedUserId(s));
+    }
+
     @GetMapping("/planned-payments/{id}")
     public PlannedPaymentDTO getPlannedPaymentById(@PathVariable int id, HttpSession s) {
         return plannedPaymentService.getPlannedPaymentById(id, getLoggedUserId(s));
@@ -33,17 +41,20 @@ public class PlannedPaymentController extends AbstractController{
     }
 
     @GetMapping("/accounts/{id}/planned-payments")
-    public List<PlannedPaymentDTO> getAllPlannedPaymentsForAccount(@PathVariable int id, HttpSession s) {
-        return plannedPaymentService.getAllPlannedPaymentsForAccount(id, getLoggedUserId(s));
+    public Page<PlannedPaymentDTO> getAllPlannedPaymentsForAccount(@PathVariable int id, HttpSession s,
+                                                                   @RequestParam(defaultValue = "0") int page,
+                                                                   @RequestParam(defaultValue = "10") int size) {
+        Pageable pageable = PageRequest.of(page, size);
+
+        return plannedPaymentService.getAllPlannedPaymentsForAccount(id, getLoggedUserId(s), pageable);
     }
 
     @GetMapping("/planned-payments/{id}/transactions")
-    public List<TransactionDTOWithoutPlannedPayments> getAllTransactionsForPlannedPayment(@PathVariable int id, HttpSession s) {
-        return plannedPaymentService.getAllTransactionsForPlannedPayment(id, getLoggedUserId(s));
-    }
+    public Page<TransactionDTOWithoutPlannedPayments> getAllTransactionsForPlannedPayment(@PathVariable int id, HttpSession s,
+                                                                                          @RequestParam(defaultValue = "0") int page,
+                                                                                          @RequestParam(defaultValue = "10") int size) {
+        Pageable pageable = PageRequest.of(page, size);
 
-    @PutMapping("/planned-payments/{id}")
-    public PlannedPaymentDTO editPlannedPaymentById(@PathVariable int id, @RequestBody PlannedPaymentRequestDTO plannedPaymentRequestDTO, HttpSession s) {
-        return plannedPaymentService.editPlannedPaymentById(id, plannedPaymentRequestDTO, getLoggedUserId(s));
+        return plannedPaymentService.getAllTransactionsForPlannedPayment(id, getLoggedUserId(s), pageable);
     }
 }
