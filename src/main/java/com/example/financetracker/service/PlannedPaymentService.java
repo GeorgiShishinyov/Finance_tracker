@@ -128,6 +128,7 @@ public class PlannedPaymentService extends AbstractService {
             transactionRequestDTO.setDescription(plannedPayment.getDescription());
             transactionRequestDTO.setCategoryId(plannedPayment.getCategory().getId());
             transactionRequestDTO.setPlannedPaymentId(plannedPayment.getId());
+            transactionRequestDTO.setCurrencyId(plannedPayment.getAccount().getCurrency().getId());
             transactionService.createTransaction(transactionRequestDTO, plannedPayment.getAccount().getOwner().getId());
 
             Frequency frequency = plannedPayment.getFrequency();
