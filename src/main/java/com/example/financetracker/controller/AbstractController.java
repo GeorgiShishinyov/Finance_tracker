@@ -5,6 +5,7 @@ import com.example.financetracker.model.exceptions.BadRequestException;
 import com.example.financetracker.model.exceptions.NotFoundException;
 import com.example.financetracker.model.exceptions.UnauthorizedException;
 import jakarta.servlet.http.HttpSession;
+import jakarta.validation.ConstraintViolationException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.http.HttpStatus;
@@ -23,6 +24,12 @@ public abstract class AbstractController {
     @ExceptionHandler(BadRequestException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ErrorDTO handleBadRequest(Exception e){
+        return generateErrorDTO(e.getMessage(), HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(ConstraintViolationException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ErrorDTO handleConstraintViolationException(ConstraintViolationException e) {
         return generateErrorDTO(e.getMessage(), HttpStatus.BAD_REQUEST);
     }
 

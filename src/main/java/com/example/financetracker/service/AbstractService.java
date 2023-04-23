@@ -92,7 +92,6 @@ public abstract class AbstractService {
     }
 
     protected void checkIfTransactionsExist(List<Transaction> transactions) {
-        //TODO remove
         if (transactions.isEmpty()) {
             throw new NotFoundException("Transactions not found");
         }

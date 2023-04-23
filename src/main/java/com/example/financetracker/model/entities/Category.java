@@ -1,5 +1,6 @@
 package com.example.financetracker.model.entities;
 
+import com.google.gson.annotations.Expose;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -25,6 +26,7 @@ public class Category {
     @Column(name = "icon_url")
     private String iconUrl;
 
+    @Expose
     @Column(name = "name")
     private String name;
 
