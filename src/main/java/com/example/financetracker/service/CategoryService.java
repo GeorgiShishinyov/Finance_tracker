@@ -4,6 +4,8 @@ import com.example.financetracker.model.entities.Category;
 import com.example.financetracker.model.exceptions.NotFoundException;
 import com.example.financetracker.model.repositories.CategoryRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
@@ -20,8 +22,12 @@ public class CategoryService extends AbstractService {
                 .orElseThrow(() -> new NotFoundException("Category not found!"));
     }
 
-    public List<Category> getAllCategories() {
-        return categoryRepository.findAll();
+    public Page<Category> getAllCategories(Pageable pageable) {
+        Page<Category> categories = categoryRepository.findAll(pageable);
+        if (categories.isEmpty()) {
+            throw new NotFoundException("No categories found.");
+        }
+        return categories;
     }
 
     public List<Category> filterCategory(String name) {
