@@ -1,6 +1,5 @@
 package com.example.financetracker.model.DTOs.TransactionDTOs;
 
-import com.example.financetracker.model.DTOs.CurrencyDTOs.CurrencyDTO;
 import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;

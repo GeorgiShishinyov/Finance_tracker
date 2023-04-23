@@ -5,10 +5,10 @@ import com.example.financetracker.model.DTOs.AccountDTOs.AccountWithoutOwnerDTO;
 import com.example.financetracker.model.DTOs.AccountDTOs.CreateAccountDTO;
 import com.example.financetracker.model.DTOs.AccountDTOs.EditAccountDTO;
 import com.example.financetracker.model.exceptions.BadRequestException;
-import com.example.financetracker.model.exceptions.UnauthorizedException;
 import com.example.financetracker.service.AccountService;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.HttpHeaders;
@@ -58,11 +58,10 @@ public class AccountController extends AbstractController {
 
     @GetMapping("/accounts/{id}/export")
     public ResponseEntity<ByteArrayResource> exportAccountStatement(@PathVariable int id,
-                                                                    @RequestParam(name = "format") String format,
+                                                                    @RequestParam(name = "format", defaultValue = "JSON") @NotBlank String format,
                                                                     @RequestParam(name = "start-date")
                                                                     @org.springframework.format.annotation.DateTimeFormat(pattern = "yyyy-MM-dd")
-                                                                    LocalDateTime startDate,
-                                                                    @RequestParam(name = "end-date")
+                                                                    LocalDateTime startDate, @RequestParam(name = "end-date")
                                                                     @org.springframework.format.annotation.DateTimeFormat(pattern = "yyyy-MM-dd")
                                                                     LocalDateTime endDate,
                                                                     HttpSession s) {

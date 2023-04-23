@@ -11,7 +11,6 @@ import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 
 @RestController
 public class TransferController extends AbstractController{
@@ -28,13 +27,6 @@ public class TransferController extends AbstractController{
     public TransferDTO getTransferById(@PathVariable int id, HttpSession s) {
         return transferService.getTransferById(id, getLoggedUserId(s));
     }
-    /*
-    @GetMapping("/transfers")
-    public List<TransferDTO> getAllTransfersForUser(HttpSession s) {
-        return transferService.getAllTransfersForUser(getLoggedUserId(s));
-    }
-
-     */
 
     @GetMapping("/transfers")
     public Page<TransferDTO> getAllTransfersForUser(HttpSession s,
