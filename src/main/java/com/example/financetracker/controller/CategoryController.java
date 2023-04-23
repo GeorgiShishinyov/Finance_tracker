@@ -21,9 +21,7 @@ public class CategoryController extends AbstractController{
 
     @GetMapping("/categories/{id}")
     public Category getCategoryById(@PathVariable int id, HttpSession s) {
-        if (s.getAttribute("LOGGED") == null || !(Boolean) s.getAttribute("LOGGED")) {
-            throw new UnauthorizedException("You are not authorized to perform this action.");
-        }
+        getLoggedUserId(s);
         return categoryService.getCategoryById(id);
     }
 
@@ -48,4 +46,3 @@ public class CategoryController extends AbstractController{
         Files.copy(f.toPath(), response.getOutputStream());
     }
 }
-

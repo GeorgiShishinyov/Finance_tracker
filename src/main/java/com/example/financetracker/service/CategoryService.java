@@ -33,7 +33,7 @@ public class CategoryService extends AbstractService {
     }
 
     public File download(String fileName) {
-        fileName = "C:\\Users\\User\\Desktop\\Finance_tracker_project\\finance_tracker\\uploads\\" + fileName;
+        fileName = "finance_tracker" + File.separator + "uploads" + File.separator + fileName;
         File f = new File(fileName);
         System.out.println(fileName);
         if(f.exists()){
