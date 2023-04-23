@@ -55,7 +55,8 @@ public abstract class AbstractController {
     }
 
     private ErrorDTO generateErrorDTO(Object o, HttpStatus s){
-        //TODO logger.error
+        String errorMessage = "Error occurred: " + o.toString() + ", status: " + s.toString();
+        logger.error(errorMessage);
         return ErrorDTO.builder()
                 .message(o)
                 .time(LocalDateTime.now())
