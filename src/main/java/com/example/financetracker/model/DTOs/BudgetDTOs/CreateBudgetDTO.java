@@ -20,9 +20,10 @@ public class CreateBudgetDTO {
     @Size(max = 45, message = "Name should be up to 45 characters!")
     private String description;
 
-    @FutureOrPresent(message = "Start date should be in future or present!")
+    @NotNull(message = "Start date can not be null!")
     private LocalDateTime startDate;
 
+    @NotNull(message = "End date can not be null!")
     @Future(message = "End date should be in future!")
     private LocalDateTime endDate;
 

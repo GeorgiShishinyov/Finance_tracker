@@ -1,6 +1,8 @@
 package com.example.financetracker.service;
 
 import com.example.financetracker.model.DTOs.BudgetDTOs.*;
+import com.example.financetracker.model.DTOs.CategoryDTOs.CategoryDTO;
+import com.example.financetracker.model.DTOs.CurrencyDTOs.CurrencyDTO;
 import com.example.financetracker.model.DTOs.TransactionDTOs.TransactionDTO;
 import com.example.financetracker.model.entities.Budget;
 import com.example.financetracker.model.entities.Category;
@@ -57,7 +59,7 @@ public class BudgetService extends AbstractService{
         }
     }
 
-    public EditBudgetDTO edit(EditBudgetDTO dto, int id, int userId) {
+    public BudgetDTO edit(EditBudgetDTO dto, int id, int userId) {
         if(dto.getOwnerId() == userId) {
             Optional<Budget> budgetOptional = budgetRepository.findById(id);
             if(!budgetOptional.isPresent()){
@@ -77,12 +79,12 @@ public class BudgetService extends AbstractService{
             budgetRepository.save(budget);
             logger.info("Updated budget: "+budget.getId()+"\n"+budget.toString());
 
-            return mapper.map(budget, EditBudgetDTO.class);
+            return mapper.map(budget, BudgetDTO.class);
         }
         throw new UnauthorizedException("You can not edit a budget on foreign profile!");
     }
 
-    public DeleteBudgetDTO delete(int id, int userId) {
+    public BudgetDTO delete(int id, int userId) {
         Optional<Budget> optBudget = budgetRepository.findById(id);
         if(optBudget.isEmpty()){
             throw new NotFoundException("No such budget");
@@ -94,13 +96,13 @@ public class BudgetService extends AbstractService{
         budgetRepository.deleteById(id);
         logger.info("Deleted budget: "+budget.getId()+"\n"+budget.toString());
 
-        return mapper.map(optBudget.get(), DeleteBudgetDTO.class);
+        return mapper.map(optBudget.get(), BudgetDTO.class);
     }
 
-    public List<CreateBudgetDTO> getAllBudgets(int userId) {
+    public List<BudgetDTO> getAllBudgets(int userId) {
         List<Budget> budgets = budgetRepository.findAllByOwnerId(userId);
         return budgets.stream()
-                .map(budget -> mapper.map(budget, CreateBudgetDTO.class))
+                .map(budget -> mapper.map(budget, BudgetDTO.class))
                 .collect(Collectors.toList());
     }
 
@@ -119,6 +121,7 @@ public class BudgetService extends AbstractService{
         for(Transaction transaction : transactions){
             transactionOnUser.add(mapper.map(transaction, TransactionDTO.class));
         }
+
         BudgetWithTransactionsDTO budgetWithTransactionsDTO = new BudgetWithTransactionsDTO();
         budgetWithTransactionsDTO.setTransactions(transactionOnUser);
         budgetWithTransactionsDTO.setId(id);
@@ -126,8 +129,8 @@ public class BudgetService extends AbstractService{
         budgetWithTransactionsDTO.setDescription(budget.getDescription());
         budgetWithTransactionsDTO.setEndDate(budget.getEndDate());
         budgetWithTransactionsDTO.setStartDate(budget.getStartDate());
-        budgetWithTransactionsDTO.setCurrencyId(budget.getCurrency().getId());
-        budgetWithTransactionsDTO.setCategoryId(budget.getCategory().getId());
+        budgetWithTransactionsDTO.setCurrency(mapper.map(budget.getCurrency(), CurrencyDTO.class));
+        budgetWithTransactionsDTO.setCategory(mapper.map(budget.getCategory(), CategoryDTO.class));
 
         return budgetWithTransactionsDTO;
     }

@@ -22,19 +22,19 @@ public class BudgetController extends AbstractController{
     }
 
     @PutMapping("budgets/{id}")
-    public EditBudgetDTO edit(@Valid @PathVariable int id, @RequestBody EditBudgetDTO dto, HttpSession s){
+    public BudgetDTO edit(@Valid @PathVariable int id, @RequestBody EditBudgetDTO dto, HttpSession s){
         int userId = getLoggedUserId(s);
         return budgetService.edit(dto, id, userId);
     }
 
     @DeleteMapping("/budgets/{id}")
-    public DeleteBudgetDTO delete(@PathVariable int id, HttpSession s){
+    public BudgetDTO delete(@PathVariable int id, HttpSession s){
         int userId = getLoggedUserId(s);
         return budgetService.delete(id, userId);
     }
 
     @GetMapping("/budgets")
-    public List<CreateBudgetDTO> getAllBudgets(HttpSession s){
+    public List<BudgetDTO> getAllBudgets(HttpSession s){
         int userId = getLoggedUserId(s);
         return budgetService.getAllBudgets(userId);
     }

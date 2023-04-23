@@ -5,6 +5,10 @@ import com.example.financetracker.model.exceptions.UnauthorizedException;
 import com.example.financetracker.service.CategoryService;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
 import lombok.SneakyThrows;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -26,7 +30,8 @@ public class CategoryController extends AbstractController{
     }
 
     @GetMapping("/categories/filter")
-    public List<Category> filterCategory(@RequestParam ("name") String name, HttpSession s){
+    public List<Category> filterCategory(@RequestParam ("name") @NotNull @NotBlank(message = "Filter can not be empty!")
+                                             @Size(max = 15) String name, HttpSession s){
         getLoggedUserId(s);
         return categoryService.filterCategory(name);
     }

@@ -16,6 +16,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class BudgetDTO {
 
+    private int id;
     private String description;
     private LocalDateTime startDate;
     private LocalDateTime endDate;

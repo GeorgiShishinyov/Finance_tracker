@@ -12,7 +12,7 @@ import java.util.List;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class BudgetWithTransactionsDTO extends DeleteBudgetDTO {
+public class BudgetWithTransactionsDTO extends BudgetDTO {
 
     private List<TransactionDTO> transactions;
 }
