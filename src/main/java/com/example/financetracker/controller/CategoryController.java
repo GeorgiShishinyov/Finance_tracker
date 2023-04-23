@@ -1,7 +1,6 @@
 package com.example.financetracker.controller;
 
 import com.example.financetracker.model.entities.Category;
-import com.example.financetracker.model.exceptions.UnauthorizedException;
 import com.example.financetracker.service.CategoryService;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
