@@ -1,8 +1,12 @@
 package com.example.financetracker.service;
 
 import com.example.financetracker.model.DTOs.CurrencyDTOs.CurrencyDTO;
+import com.example.financetracker.model.entities.Currency;
+import com.example.financetracker.model.exceptions.NotFoundException;
 import com.example.financetracker.model.repositories.CurrencyRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -14,11 +18,12 @@ public class CurrencyService extends AbstractService{
     @Autowired
     private CurrencyRepository currencyRepository;
 
-    public List<CurrencyDTO> getAllCurrencies() {
-        return currencyRepository.findAll()
-                .stream()
-                .map(currency -> mapper.map(currency, CurrencyDTO.class))
-                .collect(Collectors.toList());
+    public Page<CurrencyDTO> getAllCurrencies(Pageable pageable) {
+        Page<Currency> currencies = currencyRepository.findAll(pageable);
+        if (currencies.isEmpty()) {
+            throw new NotFoundException("No currencies found.");
+        }
+        return currencies.map(currency -> mapper.map(currency, CurrencyDTO.class));
     }
 
 }

@@ -28,13 +28,6 @@ public class TransferController extends AbstractController{
     public TransferDTO getTransferById(@PathVariable int id, HttpSession s) {
         return transferService.getTransferById(id, getLoggedUserId(s));
     }
-    /*
-    @GetMapping("/transfers")
-    public List<TransferDTO> getAllTransfersForUser(HttpSession s) {
-        return transferService.getAllTransfersForUser(getLoggedUserId(s));
-    }
-
-     */
 
     @GetMapping("/transfers")
     public Page<TransferDTO> getAllTransfersForUser(HttpSession s,
