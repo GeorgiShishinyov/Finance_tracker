@@ -51,9 +51,6 @@ public class BudgetService extends AbstractService{
         if(budget.getBalance().compareTo(BigDecimal.ZERO) < 0){
             throw new BadRequestException("Your balance can't be negative!");
         }
-        if(budget.getStartDate().isBefore(LocalDateTime.now())){
-            throw new BadRequestException("You can not create a budget in the past!");
-        }
         if(budget.getStartDate().isAfter(budget.getEndDate())){
             throw new BadRequestException("End date can't be before start date!");
         }

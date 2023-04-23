@@ -32,7 +32,8 @@ public class CategoryController extends AbstractController{
     }
 
     @GetMapping("/categories/filter")
-    public List<Category> filterCategory(@RequestParam ("name") @NotNull @NotBlank(message = "Filter can not be empty!")
+    public List<Category> filterCategory(@RequestParam ("name") @NotNull(message = "Can not be null!")
+                                             @NotBlank(message = "Filter can not be empty!")
                                              @Size(max = 15) String name, HttpSession s){
         getLoggedUserId(s);
         return categoryService.filterCategory(name);
