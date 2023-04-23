@@ -43,15 +43,16 @@ public class AccountService extends AbstractService {
     private AccountStatementExcelGenerator accountStatementExcelGenerator;
 
     public AccountWithOwnerDTO create(CreateAccountDTO dto, int userId) {
-        Account account = mapper.map(dto, Account.class);
+        Account account = new Account();
+        account.setName(dto.getName());
+        account.setBalance(dto.getBalance());
+        User u = getUserById(userId);
+        account.setOwner(u);
         Currency currency = getCurrencyById(dto.getCurrencyId());
         account.setCurrency(currency);
         validateAccountData(account);
-        User u = getUserById(userId);
-        account.setOwner(u);
         accountRepository.save(account);
         logger.info("Created account: "+account.getId()+"\n"+account.toString());
-
         return mapper.map(account, AccountWithOwnerDTO.class);
     }
 
