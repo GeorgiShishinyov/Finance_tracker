@@ -53,12 +53,8 @@ public class AccountController extends AbstractController {
     @DeleteMapping("/accounts/{id}")
     public AccountWithoutOwnerDTO deleteAccountById(@PathVariable int id, HttpSession s) {
         int userId = getLoggedUserId(s);
-        if (s.getAttribute("LOGGED") == null || !(Boolean) s.getAttribute("LOGGED")) {
-            throw new UnauthorizedException("You are not authorized to perform this action.");
-        }
         return accountService.deleteAccountById(id, userId);
     }
-
 
     @GetMapping("/accounts/{id}/export")
     public ResponseEntity<ByteArrayResource> exportAccountStatement(@PathVariable int id,

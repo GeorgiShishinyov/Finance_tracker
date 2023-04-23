@@ -61,13 +61,13 @@ public class AccountControllerTest {
         // Prepare test data
         CreateAccountDTO createAccountDTO = new CreateAccountDTO();
         createAccountDTO.setName("My Account");
-        createAccountDTO.setBalance(BigDecimal.ZERO);
+        createAccountDTO.setBalance(BigDecimal.ONE);
         createAccountDTO.setCurrencyId(1);
 
         AccountWithOwnerDTO accountWithOwnerDTO = new AccountWithOwnerDTO();
         accountWithOwnerDTO.setId(1);
         accountWithOwnerDTO.setName("My Account");
-        accountWithOwnerDTO.setBalance(BigDecimal.ZERO);
+        accountWithOwnerDTO.setBalance(BigDecimal.ONE);
 
         when(accountService.create(any(CreateAccountDTO.class), any(Integer.class)))
                 .thenReturn(accountWithOwnerDTO);
@@ -78,14 +78,14 @@ public class AccountControllerTest {
         mockSession.setAttribute("LOGGED_ID", 1);
 
         // Perform the request
-        mockMvc.perform(MockMvcRequestBuilders.post("/users/1/accounts")
+        mockMvc.perform(MockMvcRequestBuilders.post("/accounts")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{ \"name\": \"My Account\", \"balance\": 0, \"currencyId\": 1 }")
+                        .content("{ \"name\": \"My Account\", \"balance\": 1, \"currencyId\": 1 }")
                         .session(mockSession))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(1))
                 .andExpect(jsonPath("$.name").value("My Account"))
-                .andExpect(jsonPath("$.balance").value(0));
+                .andExpect(jsonPath("$.balance").value(1));
     }
 
     @SneakyThrows

@@ -2,7 +2,6 @@ package com.example.financetracker.service;
 
 import com.example.financetracker.model.DTOs.BudgetDTOs.*;
 import com.example.financetracker.model.DTOs.TransactionDTOs.TransactionDTO;
-import com.example.financetracker.model.DTOs.AccountDTOs.AccountWithOwnerDTO;
 import com.example.financetracker.model.entities.Budget;
 import com.example.financetracker.model.entities.Category;
 import com.example.financetracker.model.entities.Currency;
@@ -26,12 +25,6 @@ public class BudgetService extends AbstractService{
 
     @Autowired
     private BudgetRepository budgetRepository;
-
-    @Autowired
-    private TransactionService transactionService;
-
-    @Autowired
-    private AccountService accountService;
 
     public BudgetDTO create(CreateBudgetDTO dto, int userId) {
         Budget budget = new Budget();
@@ -73,7 +66,6 @@ public class BudgetService extends AbstractService{
             Budget budget = budgetOptional.get();
             Category category = getCategoryById(dto.getCategoryId());
             Currency currency = getCurrencyById(dto.getCurrencyId());
-            System.out.println("start: " + dto.getStartDate());
             budget.setStartDate(dto.getStartDate());
             budget.setEndDate(dto.getEndDate());
             budget.setBalance(dto.getBalance());
