@@ -210,7 +210,6 @@ public class TransactionService extends AbstractService {
     }
 
     private TransactionDTO createTransactionDTO(Currency currency, Transaction transaction) {
-        //TODO for reviewing and refactoring
         CurrencyDTO currencyDTO = mapper.map(currency, CurrencyDTO.class);
         TransactionDTO transactionDTO = mapper.map(transaction, TransactionDTO.class);
         transactionDTO.setCurrencyDTO(currencyDTO);
