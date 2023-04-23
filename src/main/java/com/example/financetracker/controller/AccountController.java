@@ -9,17 +9,21 @@ import com.example.financetracker.model.exceptions.UnauthorizedException;
 import com.example.financetracker.service.AccountService;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ByteArrayResource;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.ByteArrayOutputStream;
 import java.time.LocalDateTime;
 import java.util.List;
-
+@Validated
 @RestController
 public class AccountController extends AbstractController {
 
@@ -58,13 +62,13 @@ public class AccountController extends AbstractController {
 
     @GetMapping("/accounts/{id}/export")
     public ResponseEntity<ByteArrayResource> exportAccountStatement(@PathVariable int id,
-                                                                    @RequestParam(name = "format") String format,
+                                                                    @RequestParam(name = "format", defaultValue = "JSON") @NotBlank String format,
                                                                     @RequestParam(name = "start-date")
-                                                                    @org.springframework.format.annotation.DateTimeFormat(pattern = "yyyy-MM-dd")
-                                                                    LocalDateTime startDate,
-                                                                    @RequestParam(name = "end-date")
-                                                                    @org.springframework.format.annotation.DateTimeFormat(pattern = "yyyy-MM-dd")
-                                                                    LocalDateTime endDate,
+                                                                        @org.springframework.format.annotation.DateTimeFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
+                                                                        @NotNull LocalDateTime startDate,
+                                                                    @RequestParam(name = "end-date", defaultValue = "#{T(java.time.LocalDateTime).now().format(T(java.time.format.DateTimeFormatter).ofPattern('yyyy-MM-dd\'T\'HH:mm:ss'))}")
+                                                                        @org.springframework.format.annotation.DateTimeFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
+                                                                        @NotNull LocalDateTime endDate,
                                                                     HttpSession s) {
 
         int userId = getLoggedUserId(s);
