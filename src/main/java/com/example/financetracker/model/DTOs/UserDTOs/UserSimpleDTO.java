@@ -17,4 +17,5 @@ public class UserSimpleDTO {
     private String lastName;
     private LocalDateTime dateOfBirth;
     private LocalDateTime lastLogin;
+    private String phoneNumber;
 }

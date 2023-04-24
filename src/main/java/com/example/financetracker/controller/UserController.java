@@ -9,6 +9,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Map;
+
 @RestController
 public class UserController extends AbstractController {
 
@@ -22,9 +24,7 @@ public class UserController extends AbstractController {
 
     @PostMapping("/users/login")
     public UserFullInfoDTO login(@Valid @RequestBody LoginDTO dto, HttpSession s, HttpServletRequest request) {
-        UserFullInfoDTO respDto = userService.login(dto, request.getRemoteAddr());
-        s.setAttribute("LOGGED_ID", respDto.getId());
-        return respDto;
+        return userService.login(dto, request.getRemoteAddr());
     }
 
     @PostMapping("/users/logout")
@@ -57,6 +57,16 @@ public class UserController extends AbstractController {
     @GetMapping("/users/{id}/invalidate")
     public ResponseEntity<String> invalidateSessions(@PathVariable Integer id, HttpServletRequest request) {
         return userService.invalidateSessions(id);
+    }
+
+    @PostMapping("/users/{id}/sms/confirm")
+    public UserFullInfoDTO confirmSmsCode(@PathVariable int id,
+                                          @RequestBody Map<String, String> requestMap,
+                                          HttpSession s) {
+        String code = requestMap.get("code");
+        UserFullInfoDTO respDto = userService.confirmSmsCode(id, code);
+        s.setAttribute("LOGGED_ID", respDto.getId());
+        return respDto;
     }
 
 }

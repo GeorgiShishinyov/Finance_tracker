@@ -7,11 +7,17 @@ import com.example.financetracker.model.entities.User;
 import com.example.financetracker.model.exceptions.BadRequestException;
 import com.example.financetracker.model.exceptions.NotFoundException;
 import com.example.financetracker.model.exceptions.UnauthorizedException;
+import com.vonage.client.VonageClient;
+import com.vonage.client.sms.MessageStatus;
+import com.vonage.client.sms.SmsSubmissionResponse;
+import com.vonage.client.sms.messages.TextMessage;
 import jakarta.servlet.http.HttpSession;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cglib.core.Local;
 import org.springframework.http.ResponseEntity;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -21,8 +27,10 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Optional;
+import java.util.Random;
 import java.util.UUID;
 
 @Service
@@ -53,9 +61,9 @@ public class UserService extends AbstractService {
         user.setUniqueCode(uniqueCode);
         user.setExpirationDate(LocalDateTime.now().plusHours(24));
         userRepository.save(user);
-        logger.info("Registered user: "+user.toString());
+        logger.info("Registered user: " + user.toString());
         new Thread(() -> {
-           sendEmailValidation(user.getEmail(), uniqueCode);
+            sendEmailValidation(user.getEmail(), uniqueCode);
         }).start();
 
         return mapper.map(user, UserFullInfoDTO.class);
@@ -66,7 +74,7 @@ public class UserService extends AbstractService {
         Optional<User> optionalUser = userRepository.findByEmail(dto.getEmail());
         User user = verifyUserExistence(optionalUser);
         checkCorrectCredentials(dto.getPassword(), user.getPassword());
-        if (!user.isVerified()){
+        if (!user.isVerified()) {
             throw new UnauthorizedException("The user is not verified. Please check you email.");
         }
         // Check if a login location for the given IP and user ID already exists
@@ -81,9 +89,13 @@ public class UserService extends AbstractService {
                 sendEmailIpInvalidation(user.getEmail(), user.getId(), ipUniqueCode);
             }).start();
         }
-        user.setLastLogin(LocalDateTime.now());
-        userRepository.save(user);
-        logger.info("Logged-in user: "+user.getId()+" with IP: "+ip+"\n"+user.toString());
+        String sms2FACode = generateCode();
+        user.setSms2FACode(sms2FACode);
+        user.setSmsExpirationDate(LocalDateTime.now().plusMinutes(5));
+        new Thread(() -> {
+            // Send SMS for 2FA authentication
+            send2FASms(user.getPhoneNumber(), sms2FACode);
+        }).start();
 
         return mapper.map(user, UserFullInfoDTO.class);
     }
@@ -96,7 +108,7 @@ public class UserService extends AbstractService {
         user.setLastName(editDto.getLastName());
         user.setDateOfBirth(editDto.getDateOfBirth());
         userRepository.save(user);
-        logger.info("Updated user: "+user.getId()+"\n"+user.toString());
+        logger.info("Updated user: " + user.getId() + "\n" + user.toString());
 
         return mapper.map(user, UserFullInfoDTO.class);
     }
@@ -106,7 +118,7 @@ public class UserService extends AbstractService {
         User user = verifyUserExistence(optionalUser);
         checkAuthorization(id, loggedUserId);
         userRepository.deleteById(id);
-        logger.info("Deleted user: "+user.getId()+"\n"+user.toString());
+        logger.info("Deleted user: " + user.getId() + "\n" + user.toString());
 
         return mapper.map(user, UserFullInfoDTO.class);
     }
@@ -130,7 +142,7 @@ public class UserService extends AbstractService {
         checkMatchingPasswords(passwordChangeDTO.getNewPassword(), passwordChangeDTO.getConfirmPassword());
         user.setPassword(encoder.encode(passwordChangeDTO.getNewPassword()));
         userRepository.save(user);
-        logger.info("Updated user's password: "+user.getId()+"\n"+user.toString());
+        logger.info("Updated user's password: " + user.getId() + "\n" + user.toString());
 
         return mapper.map(user, UserFullInfoDTO.class);
     }
@@ -146,6 +158,7 @@ public class UserService extends AbstractService {
 
         return ResponseEntity.ok("Sessions invalidated.");
     }
+
     @SneakyThrows
     private void sendEmailValidation(String email, String code) {
         SimpleMailMessage message = new SimpleMailMessage();
@@ -212,9 +225,58 @@ public class UserService extends AbstractService {
     }
 
     private void checkAuthorization(int id, int loggedUserId) {
-        if (id != loggedUserId){
+        if (id != loggedUserId) {
             throw new UnauthorizedException("You are not authorized to perform this action.");
         }
     }
 
+    @Value("${sms.api.key}")
+    private String apiKey;
+    @Value("${sms.api.secret}")
+    private String apiSecret;
+
+    private void send2FASms(String to, String sms2FACode) {
+        VonageClient client = VonageClient.builder().apiKey(apiKey).apiSecret(apiSecret).build();
+        TextMessage message = new TextMessage("Vonage APIs",
+                to,
+                sms2FACode
+        );
+        SmsSubmissionResponse response = client.getSmsClient().submitMessage(message);
+
+        if (response.getMessages().get(0).getStatus() == MessageStatus.OK) {
+            System.out.println("Message sent successfully.");
+        } else {
+            System.out.println("Message failed with error: " + response.getMessages().get(0).getErrorText());
+        }
+    }
+
+    public UserFullInfoDTO confirmSmsCode(int userId, String code) {
+        Optional<User> optionalUser = userRepository.findById(userId);
+        User user = verifyUserExistence(optionalUser);
+
+        if (!user.getSms2FACode().equals(code)) {
+            throw new UnauthorizedException("Confirmation code is invalid.");
+        }
+        if (LocalDateTime.now().isAfter(user.getSmsExpirationDate())) {
+            throw new UnauthorizedException("Confirmation code is expired");
+        }
+        user.setLastLogin(LocalDateTime.now());
+        userRepository.save(user);
+        logger.info("Logged-in user: " + user.getId() + "\n" + user.toString());
+        return mapper.map(user, UserFullInfoDTO.class);
+    }
+
+    private static String generateCode() {
+        Random rand = new Random();
+        int numDigits = 6;
+        StringBuilder sb = new StringBuilder();
+
+        for (int i = 0; i < numDigits; i++) {
+            int digit = rand.nextInt(10);
+            sb.append(digit);
+        }
+
+        String code = sb.toString();
+        return code;
+    }
 }

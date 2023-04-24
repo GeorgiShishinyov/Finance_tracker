@@ -40,4 +40,8 @@ public class RegisterDTO {
     @Past(message = "Invalid date of birth!")
     private LocalDateTime dateOfBirth;
 
+    @NotBlank(message = "Phone number cannot be blank!")
+    @Pattern(regexp = "^359[789]\\d{8}", message = "Invalid phone number!")
+    private String phoneNumber;
+
 }

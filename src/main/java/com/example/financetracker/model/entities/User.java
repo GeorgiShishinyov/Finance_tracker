@@ -48,6 +48,15 @@ public class User {
     @Column(name = "validation_exp_date_time")
     private LocalDateTime expirationDate;
 
+    @Column(name = "phone_number")
+    private String phoneNumber;
+
+    @Column(name = "sms_2FA_code")
+    private String sms2FACode;
+
+    @Column(name = "sms_exp_date_time")
+    private LocalDateTime smsExpirationDate;
+
     @OneToMany
     @JoinColumn(name = "owner_id")
     private Set<Account> accounts = new HashSet<>();
@@ -72,6 +81,7 @@ public class User {
                 "Email: " + this.email + "\n" +
                 "First name: " + this.firstName + "\n" +
                 "Last name: " + this.lastName + "\n" +
-                "Date of birth: " + this.dateOfBirth;
+                "Date of birth: " + this.dateOfBirth + "\n" +
+                "Phone number: " + phoneNumber;
     }
 }
