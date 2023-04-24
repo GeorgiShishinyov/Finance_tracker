@@ -17,7 +17,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.cglib.core.Local;
 import org.springframework.http.ResponseEntity;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -27,7 +26,6 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Optional;
 import java.util.Random;
@@ -75,7 +73,7 @@ public class UserService extends AbstractService {
         User user = verifyUserExistence(optionalUser);
         checkCorrectCredentials(dto.getPassword(), user.getPassword());
         if (!user.isVerified()) {
-            throw new UnauthorizedException("The user is not verified. Please check you email.");
+            throw new UnauthorizedException("The user is not verified. Please check your email.");
         }
         // Check if a login location for the given IP and user ID already exists
         if (!loginLocationRepository.existsByIpAndUser_Id(ip, user.getId())) {
