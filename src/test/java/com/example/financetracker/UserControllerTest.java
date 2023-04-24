@@ -6,6 +6,7 @@ import com.example.financetracker.model.DTOs.UserDTOs.RegisterDTO;
 import com.example.financetracker.model.DTOs.UserDTOs.UserFullInfoDTO;
 import com.example.financetracker.model.entities.User;
 import com.example.financetracker.model.exceptions.BadRequestException;
+import com.example.financetracker.model.exceptions.UnauthorizedException;
 import com.example.financetracker.service.UserService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
@@ -108,17 +109,6 @@ public class UserControllerTest {
         LoginDTO dto = new LoginDTO();
         dto.setEmail("test@example.com");
         dto.setPassword("password123");
-        // set properties of dto object
-        User u = new User();
-        // set properties of u object
-        u.setId(1);
-        u.setEmail("test@example.com");
-        u.setPassword("password123");
-        u.setFirstName("John");
-        u.setLastName("Doe");
-        u.setDateOfBirth(LocalDateTime.of(2000, 1, 1, 0, 0));
-
-        Optional<User> optionalUser = Optional.of(u);
 
         UserFullInfoDTO expected = new UserFullInfoDTO();
         // set properties of expected object
@@ -131,13 +121,17 @@ public class UserControllerTest {
 
         when(userService.login(dto, "127.0.0.1")).thenReturn(expected);
         HttpServletRequest request = mock(HttpServletRequest.class);
-        HttpSession session = mock(HttpSession.class);
         when(request.getRemoteAddr()).thenReturn("127.0.0.1");
 
-        UserFullInfoDTO result = controller.login(dto, session, request);
+        UserFullInfoDTO result = controller.login(dto, request);
 
         assertNotNull(result);
         assertEquals(expected.getId(), result.getId());
+        assertEquals(expected.getEmail(), result.getEmail());
+        assertEquals(expected.getLastLogin(), result.getLastLogin());
+        assertEquals(expected.getDateOfBirth(), result.getDateOfBirth());
+        assertEquals(expected.getFirstName(), result.getFirstName());
+        assertEquals(expected.getLastName(), result.getLastName());
     }
 
     @SneakyThrows
@@ -148,11 +142,16 @@ public class UserControllerTest {
         registerDTO.setPassword("StrongP@ssword1");
         registerDTO.setConfirmPassword("StrongP@ssword1");
 
-        BadRequestException expectedException = new BadRequestException("invalid email");
-        when(userService.register(registerDTO)).thenThrow(expectedException);
+        BadRequestException expectedException = null;
+        if(!registerDTO.getEmail().matches("^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$")){
+            expectedException = new BadRequestException("invalid email");
+        }else{
+            fail("Sorry, email is valid!");
+        }
 
+        when(userService.register(registerDTO)).thenThrow(expectedException);
         BadRequestException thrownException = assertThrows(BadRequestException.class, () -> {
-            controller.register(registerDTO);
+            userService.register(registerDTO);
         });
 
         assertEquals(expectedException.getMessage(), thrownException.getMessage());

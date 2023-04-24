@@ -23,7 +23,7 @@ public class UserController extends AbstractController {
     }
 
     @PostMapping("/users/login")
-    public UserFullInfoDTO login(@Valid @RequestBody LoginDTO dto, HttpSession s, HttpServletRequest request) {
+    public UserFullInfoDTO login(@Valid @RequestBody LoginDTO dto, HttpServletRequest request) {
         return userService.login(dto, request.getRemoteAddr());
     }
 
